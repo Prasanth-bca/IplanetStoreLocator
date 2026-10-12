@@ -46,6 +46,8 @@ Desktop.ini
 *.db
 *.sqlite
 *.sqlite3
+*.sqlite-shm
+*.sqlite-wal
 
 # Temporary and backup files
 *.tmp

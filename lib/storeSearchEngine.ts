@@ -11,27 +11,43 @@ export interface SearchOptions {
   pincode?: string;
   limit?: number;
   storeCategory?: StoreCategory;
+  radiusKm?: number;
 }
 
+/** Standard straight-line geographic radius threshold in Kilometers */
+export const DEFAULT_SEARCH_RADIUS_KM = 100;
+
 export async function searchStores(options: SearchOptions): Promise<SearchResponse> {
-  const { query, latitude, longitude, pincode: directPincode, limit: directLimit, storeCategory: directCategory } = options;
+  const {
+    query,
+    latitude,
+    longitude,
+    pincode: directPincode,
+    limit: directLimit,
+    storeCategory: directCategory,
+    radiusKm = DEFAULT_SEARCH_RADIUS_KM
+  } = options;
+
   const parsed = parseNaturalQuery(query || '');
 
-  // 1. Determine Store Category: Default to Retail unless explicitly requested
+  // 1. Determine Store Category from user action or intent:
+  // Default to Retail Stores only, unless Care/Service was specifically requested
   const category: StoreCategory = directCategory || (parsed.isCareIntent ? 'Care' : 'Retail');
 
-  // Load stores from repository (retail_stores or care_centres)
-  const allCandidateStores = getAllStores(category).filter(s => s.status === 'Active');
+  // 2. Fetch live store records directly from the database (never from hardcoded lists)
+  // Only consider 'Active' stores
+  const allDatabaseStores = getAllStores(category).filter(s => s.status === 'Active');
 
-  const requestedCount = directLimit || parsed.requestedCount || 3;
+  const requestedLimit = directLimit || parsed.requestedCount || 3;
   const effectivePincode = directPincode || parsed.pincodeMatch;
 
-  // 2. Priority 1: Exact POS Code Match
+  // 3. Priority match: Direct POS Code match (e.g. user searches "RMM", "CBE3", "VLR1")
   if (parsed.posCodeMatch) {
     const cleanSearchPos = parsed.posCodeMatch.replace(/\s+/g, '').toUpperCase();
-    const exactMatch = allCandidateStores.find(
-      s => s.posCode.replace(/\s+/g, '').toUpperCase() === cleanSearchPos
-    );
+    const exactMatch = allDatabaseStores.find(s => {
+      const sPos = s.posCode.replace(/\s+/g, '').toUpperCase();
+      return sPos === cleanSearchPos || sPos.replace(/1$/, '') === cleanSearchPos || cleanSearchPos.replace(/1$/, '') === sPos;
+    });
 
     if (exactMatch) {
       const directionsUrl = exactMatch.latitude && exactMatch.longitude
@@ -40,7 +56,7 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
 
       return {
         query,
-        detectedLocation: { name: `POS Code ${exactMatch.posCode}` },
+        detectedLocation: { name: `POS Code: ${exactMatch.posCode}` },
         category,
         requestedCount: 1,
         totalFound: 1,
@@ -53,7 +69,7 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
             distanceKm: null,
             travelTimeMinutes: null,
             trafficLevel: null,
-            howToReach: `Located at ${exactMatch.address}. ${exactMatch.landmark ? 'Landmark: ' + exactMatch.landmark + '.' : ''}`,
+            howToReach: `Located at ${exactMatch.address}.${exactMatch.landmark ? ' Landmark: ' + exactMatch.landmark + '.' : ''}`,
             directionsUrl
           }
         ],
@@ -62,7 +78,7 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
     }
   }
 
-  // 3. Resolve Customer Coordinates
+  // 4. Dynamically resolve the searched location into Latitude and Longitude
   let userLat = latitude;
   let userLng = longitude;
   let resolvedLocName: string | undefined = undefined;
@@ -76,141 +92,80 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
     }
   }
 
-  // 4. Score and Rank stores based on specification hierarchy
-  interface ScoredStore {
+  // 5. If location cannot be resolved, return clear error message asking for a more specific location
+  if (userLat === undefined || userLng === undefined) {
+    return {
+      query,
+      detectedLocation: null,
+      category,
+      requestedCount: requestedLimit,
+      totalFound: 0,
+      results: [],
+      notice: `Could not identify the geographic location for "${query}". Please enter a more specific PIN code, area, landmark, or city name.`,
+      isGoogleRoutingAvailable: false
+    };
+  }
+
+  // 6. Calculate straight-line Haversine distance between searched coordinates and each eligible store
+  interface QualifyingStore {
     store: Store;
-    score: number;
-    straightDistance: number | null;
+    straightDistanceKm: number;
     reason: string;
   }
 
-  const scoredList: ScoredStore[] = [];
-  const queryLower = (parsed.locationKeyword || query).toLowerCase().trim();
+  const qualifyingStores: QualifyingStore[] = [];
 
-  // Check if a specific city was mentioned in the query
-  const knownCities = ['chennai', 'bengaluru', 'bangalore', 'coimbatore', 'madurai', 'salem', 'trichy', 'tiruchirappalli', 'puducherry', 'pondicherry', 'mangalore', 'mangaluru', 'kochi', 'vellore', 'thanjavur', 'tanjore', 'tirunelveli', 'thoothukudi', 'nagercoil', 'kannur', 'trivandrum'];
-  const matchedCity = knownCities.find(c => queryLower.includes(c));
-
-  for (const store of allCandidateStores) {
-    let score = 0;
-    const reasons: string[] = [];
-
-    // Exact PIN match (Priority 2)
-    if (effectivePincode && store.pincode === effectivePincode) {
-      score += 5000;
-      reasons.push(`Exact PIN code match (${store.pincode})`);
+  for (const store of allDatabaseStores) {
+    // Exclude records with missing or invalid coordinates from geographic ranking
+    if (
+      store.latitude === null ||
+      store.longitude === null ||
+      isNaN(store.latitude) ||
+      isNaN(store.longitude)
+    ) {
+      continue;
     }
 
-    // Locality / Area match (Priority 3)
-    if (store.area && queryLower && (store.area.toLowerCase().includes(queryLower) || queryLower.includes(store.area.toLowerCase()))) {
-      score += 3000;
-      reasons.push(`Area match (${store.area})`);
-    }
+    const straightDist = calculateHaversineDistance(
+      userLat,
+      userLng,
+      store.latitude,
+      store.longitude
+    );
 
-    // Landmark match (Priority 4)
-    if (store.landmark && queryLower && store.landmark.toLowerCase().includes(queryLower)) {
-      score += 2000;
-      reasons.push(`Landmark proximity (${store.landmark})`);
-    }
-
-    // City match (Priority 5)
-    if (store.city && queryLower && (store.city.toLowerCase().includes(queryLower) || queryLower.includes(store.city.toLowerCase()))) {
-      score += 1500;
-      reasons.push(`City match (${store.city})`);
-    }
-
-    // Full Address keyword match
-    if (queryLower && store.address.toLowerCase().includes(queryLower)) {
-      score += 1000;
-    }
-
-    // Geographic Distance Scoring (Priority 6)
-    let straightDist: number | null = null;
-    if (userLat !== undefined && userLng !== undefined && store.latitude && store.longitude) {
-      straightDist = calculateHaversineDistance(userLat, userLng, store.latitude, store.longitude);
-      // Stores closer receive higher scores
-      if (straightDist < 5) {
-        score += Math.max(0, 3000 - straightDist * 100);
-      } else if (straightDist < 15) {
-        score += Math.max(0, 2000 - straightDist * 50);
-      } else if (straightDist < 45) {
-        score += Math.max(0, 1000 - straightDist * 15);
-      } else if (straightDist < 75) {
-        score += Math.max(0, 400 - straightDist * 4);
+    // Filter stores strictly within 100 KM straight-line geographic radius
+    if (straightDist <= radiusKm) {
+      let reason = `${straightDist} km straight-line distance`;
+      if (effectivePincode && store.pincode === effectivePincode) {
+        reason = `PIN match (${store.pincode}) · ${straightDist} km away`;
       }
-    }
 
-    // Candidate inclusion filter:
-    // If a specific city was searched (e.g. Bangalore), only include stores matching that city OR within 60km
-    if (matchedCity) {
-      const storeCityLower = (store.city || '').toLowerCase();
-      const isSameCity = storeCityLower.includes(matchedCity) ||
-        (matchedCity === 'bangalore' && storeCityLower.includes('bengaluru')) ||
-        (matchedCity === 'bengaluru' && storeCityLower.includes('bangalore'));
-
-      if (isSameCity || (straightDist !== null && straightDist < 60)) {
-        scoredList.push({
-          store,
-          score: score > 0 ? score : 500,
-          straightDistance: straightDist,
-          reason: reasons[0] || (straightDist ? `Approx. ${straightDist} km away` : 'City location match')
-        });
-      }
-    } else {
-      // General location or coordinates search: include if scored or within 65km commute
-      if (score > 0 || (straightDist !== null && straightDist < 65)) {
-        scoredList.push({
-          store,
-          score,
-          straightDistance: straightDist,
-          reason: reasons[0] || (straightDist ? `Approx. ${straightDist} km away` : 'Nearby store')
-        });
-      }
+      qualifyingStores.push({
+        store,
+        straightDistanceKm: straightDist,
+        reason
+      });
     }
   }
 
-  // Sort descending by score, then ascending by distance
-  scoredList.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    if (a.straightDistance !== null && b.straightDistance !== null) {
-      return a.straightDistance - b.straightDistance;
-    }
-    return 0;
-  });
+  // 7. Sort strictly by ascending distance (nearest to farthest)
+  qualifyingStores.sort((a, b) => a.straightDistanceKm - b.straightDistanceKm);
 
-  // Shortlist candidates up to requested count
-  const shortlisted = scoredList.slice(0, requestedCount);
+  // 8. Return top 3 nearest stores within the 100 KM radius (or all available if < 3)
+  const shortlisted = qualifyingStores.slice(0, requestedLimit);
 
-  // If no candidates found through scoring/filtering, fallback to nearest stores within 80km
-  if (shortlisted.length === 0 && userLat !== undefined && userLng !== undefined) {
-    const fallbackSorted = allCandidateStores
-      .filter(s => s.latitude && s.longitude)
-      .map(s => ({
-        store: s,
-        score: 10,
-        straightDistance: calculateHaversineDistance(userLat!, userLng!, s.latitude!, s.longitude!),
-        reason: 'Nearest available store'
-      }))
-      .filter(s => s.straightDistance !== null && s.straightDistance < 80)
-      .sort((a, b) => (a.straightDistance || 0) - (b.straightDistance || 0))
-      .slice(0, requestedCount);
-
-    shortlisted.push(...fallbackSorted);
-  }
-
-  // 5. Calculate driving routes and travel time for shortlisted stores
+  // 9. Build final 14-point results with actual database fields & driving estimates
   const finalResults: StoreSearchResult[] = [];
 
   for (let i = 0; i < shortlisted.length; i++) {
     const item = shortlisted[i];
     const store = item.store;
-    let distKm: number | null = item.straightDistance;
+
     let travelMins: number | null = null;
     let traffic: 'Light traffic' | 'Moderate traffic' | 'Heavy traffic' | null = null;
 
-    if (userLat !== undefined && userLng !== undefined && store.latitude && store.longitude) {
+    if (store.latitude && store.longitude) {
       const route = await calculateRoute(userLat, userLng, store.latitude, store.longitude);
-      distKm = route.distanceKm;
       travelMins = route.travelTimeMinutes;
       traffic = route.trafficLevel;
     }
@@ -219,16 +174,14 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
       ? `https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`
       : store.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.storeName)}`;
 
-    const howToReach = userLat !== undefined
-      ? `Follow the navigation via Google Maps towards ${store.area || store.city}. The store is located at ${store.address}${store.landmark ? ', near ' + store.landmark : ''}.`
-      : `Visit ${store.address}${store.landmark ? ', near ' + store.landmark : ''}. Open 10:00 AM – 09:30 PM.`;
+    const howToReach = `Follow navigation towards ${store.area || store.city}. Store is located at ${store.address}${store.landmark ? ', near ' + store.landmark : ''}.`;
 
     finalResults.push({
       store,
       rank: i + 1,
       isPreferred: i === 0,
       matchReason: item.reason,
-      distanceKm: distKm,
+      distanceKm: item.straightDistanceKm, // Straight-line geographic distance
       travelTimeMinutes: travelMins,
       trafficLevel: traffic,
       howToReach,
@@ -236,26 +189,26 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
     });
   }
 
-  // Contextual informational notice
+  // 10. Generate clear notice if no stores found within 100 KM or if fewer than requested limit
   let notice: string | undefined = undefined;
-  if (effectivePincode && finalResults.length > 0 && finalResults[0].store.pincode !== effectivePincode) {
-    notice = `No direct store in PIN ${effectivePincode}. Showing nearest stores ranked by proximity.`;
-  } else if (matchedCity && finalResults.length > 0 && finalResults.length < requestedCount) {
-    notice = `Showing all ${finalResults.length} official iPlanet ${category} store${finalResults.length === 1 ? '' : 's'} available in the ${finalResults[0].store.city} area.`;
-  } else if (finalResults.length === 0) {
-    notice = `No official iPlanet ${category} stores found in this location. iPlanet operates across Tamil Nadu, Karnataka, Kerala, and Puducherry.`;
+  const locationLabel = resolvedLocName || query.trim();
+
+  if (finalResults.length === 0) {
+    notice = `No ${category === 'Retail' ? 'iPlanet Retail Store' : 'iPlanet Care / Service Centre'} found within a 100 KM radius of ${locationLabel}.`;
+  } else if (finalResults.length < requestedLimit) {
+    notice = `Found ${finalResults.length} ${category === 'Retail' ? 'iPlanet Retail Store' : 'iPlanet Care / Service Centre'}${finalResults.length === 1 ? '' : 's'} within a 100 KM radius of ${locationLabel}.`;
   }
 
   return {
     query,
-    detectedLocation: userLat !== undefined && userLng !== undefined ? {
+    detectedLocation: {
       name: resolvedLocName,
       latitude: userLat,
       longitude: userLng,
       pincode: effectivePincode
-    } : null,
+    },
     category,
-    requestedCount,
+    requestedCount: requestedLimit,
     totalFound: finalResults.length,
     results: finalResults,
     notice,

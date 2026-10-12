@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRetailStores, saveRetailStores } from '@/lib/storeRepo';
-import { Store } from '@/types/store';
+import { getRetailStores, saveRetailStores, getCareCentres, saveCareCentres } from '@/lib/storeRepo';
+import { Store, LocationType } from '@/types/store';
 import * as xlsx from 'xlsx';
 
 export async function POST(request: NextRequest) {
@@ -61,12 +61,33 @@ export async function POST(request: NextRequest) {
         city = parts[1].trim();
       }
 
+      const rawCoords = String(row['Latitude & Longitude'] || row['Latitude & Longitude, if available'] || '').trim();
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+      if (rawCoords) {
+        const cleaned = rawCoords.replace(/^\s*\.\s*/, '').replace(/°/g, '').replace(/[NSEWnsew]/g, '');
+        const parts = cleaned.split(/[\/\,]/);
+        if (parts.length >= 2) {
+          const lat = parseFloat(parts[0].trim());
+          const lng = parseFloat(parts[1].trim());
+          if (!isNaN(lat) && !isNaN(lng)) {
+            latitude = lat;
+            longitude = lng;
+          }
+        }
+      }
+
+      const storeType = String(row['Store Type'] || 'Retail').trim();
+      const isCare = storeType.toLowerCase().includes('care');
+      const mapsUrl = String(row['Google Maps / location'] || row['GOOGLE_MAPS_URL'] || '').trim();
+
       const newStore: Store = {
         id: `store_${Date.now()}_${index}`,
         posCode,
         storeName: storeName || `iPlanet ${posCode}`,
-        storeType: 'Retail',
-        category: 'Retail',
+        storeType: storeType || 'Retail',
+        category: isCare ? 'Care' : 'Retail',
+        locationType: (isCare ? 'iPlanet Care / Service Centre' : 'iPlanet Retail Store') as LocationType,
         brand: 'iPlanet',
         address: address || `iPlanet Store, ${area}, ${city} - ${pincode}`,
         area: area || null,
@@ -76,16 +97,16 @@ export async function POST(request: NextRequest) {
         country: 'India',
         pincode,
         landmark: landmark || null,
-        latitude: null,
-        longitude: null,
-        phone: '080-4699-9888',
+        latitude,
+        longitude,
+        phone: String(row['Phone'] || '080-4699-9888').trim(),
         contactPerson: 'Store Manager',
         storeManager: null,
         openingTime: '10:00 AM',
         closingTime: '09:30 PM',
         workingDays: 'Monday to Sunday',
         googlePlaceId: null,
-        googleMapsUrl: null,
+        googleMapsUrl: mapsUrl || (latitude && longitude ? `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}` : null),
         status: 'Active',
         priority: existingStores.length + importedStores.length + 1,
         createdAt: new Date().toISOString(),

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRetailStores, saveRetailStores } from '@/lib/storeRepo';
+import { getRetailStores, saveRetailStores, getCareCentres } from '@/lib/storeRepo';
 import { Store } from '@/types/store';
 
-export async function GET() {
-  const stores = getRetailStores();
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const category = searchParams.get('category') || 'Retail';
+  const stores = category === 'Care' ? getCareCentres() : getRetailStores();
   return NextResponse.json({ total: stores.length, stores });
 }
 
@@ -33,6 +35,7 @@ export async function POST(request: NextRequest) {
       storeName: body.storeName.trim(),
       storeType: body.storeType || 'Retail',
       category: 'Retail',
+      locationType: 'iPlanet Retail Store' as const,
       brand: 'iPlanet',
       address: body.address.trim(),
       area: body.area || body.locality || null,

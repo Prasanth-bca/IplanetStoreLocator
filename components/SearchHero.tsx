@@ -90,7 +90,7 @@ export const SearchHero: React.FC<SearchHeroProps> = ({
 
         {/* Headline */}
         <div className="mb-2">
-          <h1 className="text-[32px] sm:text-[42px] md:text-[52px] font-black tracking-tight text-gray-950 leading-[1.08]">
+          <h1 className="text-[32px] sm:text-[42px] md:text-[52px] font-black tracking-tight text-gray-950 dark:text-white leading-[1.08]">
             Find Your Nearest{' '}
             <span
               className="inline-block"
@@ -107,18 +107,18 @@ export const SearchHero: React.FC<SearchHeroProps> = ({
           </h1>
         </div>
 
-        <p className="text-sm sm:text-base text-gray-500 max-w-xl mx-auto mb-8 leading-relaxed font-medium">
+        <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 max-w-xl mx-auto mb-8 leading-relaxed font-medium">
           Official Apple Authorised Reseller · Search by PIN code, area, landmark, city, or POS code
         </p>
 
         {/* Search Form */}
         <form onSubmit={handleSubmit} className="relative max-w-2xl mx-auto mb-4">
           <div className="search-box flex items-center p-1.5 gap-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 shrink-0">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 shrink-0">
               {isLoading ? (
-                <Loader2 className="w-4.5 h-4.5 text-blue-600 animate-spin" style={{ width: 18, height: 18 }} />
+                <Loader2 className="w-4.5 h-4.5 text-blue-600 dark:text-blue-400 animate-spin" style={{ width: 18, height: 18 }} />
               ) : (
-                <Search className="w-4.5 h-4.5 text-blue-600" style={{ width: 18, height: 18 }} />
+                <Search className="w-4.5 h-4.5 text-blue-600 dark:text-blue-400" style={{ width: 18, height: 18 }} />
               )}
             </div>
 
@@ -128,7 +128,7 @@ export const SearchHero: React.FC<SearchHeroProps> = ({
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               placeholder="Search by PIN code, area, landmark, city or store code..."
-              className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-400 text-[15px] font-normal outline-none py-2 pr-1 min-w-0"
+              className="flex-1 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-[15px] font-normal outline-none py-2 pr-1 min-w-0"
               autoComplete="off"
               autoCorrect="off"
               spellCheck="false"
@@ -163,13 +163,13 @@ export const SearchHero: React.FC<SearchHeroProps> = ({
             disabled={isLoading}
             className="btn-secondary text-xs"
           >
-            <MapPin className="w-3.5 h-3.5 text-blue-600" />
+            <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>Use My Location</span>
           </button>
 
           {/* Result Count */}
-          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-xs">
-            <span className="text-xs text-gray-500 font-medium">Show:</span>
+          <div className="flex items-center gap-1.5 bg-white dark:bg-[#16161b] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 shadow-xs">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Show:</span>
             <div className="flex items-center gap-0.5">
               {[1, 3, 5, 10].map((num) => (
                 <button
@@ -179,7 +179,7 @@ export const SearchHero: React.FC<SearchHeroProps> = ({
                   className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
                     activeCount === num
                       ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   {num}

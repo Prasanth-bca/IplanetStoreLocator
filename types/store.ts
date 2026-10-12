@@ -1,5 +1,6 @@
 export type StoreStatus = 'Active' | 'Inactive' | 'TemporarilyClosed' | 'ComingSoon';
 export type StoreCategory = 'Retail' | 'Care';
+export type LocationType = 'iPlanet Retail Store' | 'iPlanet Care / Service Centre';
 
 export interface Store {
   id: string;
@@ -7,6 +8,7 @@ export interface Store {
   storeName: string;
   storeType: string;
   category: StoreCategory;
+  locationType: LocationType;
   brand: string;
   address: string;
   area: string | null;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Store, StoreStatus } from '@/types/store';
 import {
@@ -13,14 +13,25 @@ import {
   AlertTriangle,
   Loader2,
   Download,
-  Building
+  Store as StoreIcon,
+  Wrench,
+  Layers,
+  MapPin
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function AdminPage() {
+  const [activeCategory, setActiveCategory] = useState<'Retail' | 'Care'>('Retail');
   const [stores, setStores] = useState<Store[]>([]);
   const [searchFilter, setSearchFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [stateFilter, setStateFilter] = useState('ALL');
+  const [cityFilter, setCityFilter] = useState('ALL');
   const [isLoading, setIsLoading] = useState(true);
+
+  // Counts for tabs
+  const [retailCount, setRetailCount] = useState<number | null>(null);
+  const [careCount, setCareCount] = useState<number | null>(null);
 
   // Modal for new store
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -44,21 +55,45 @@ export default function AdminPage() {
   const [importStatus, setImportStatus] = useState<any | null>(null);
   const [isImporting, setIsImporting] = useState(false);
 
-  useEffect(() => {
-    fetchStores();
-  }, []);
-
-  const fetchStores = async () => {
+  const fetchStores = useCallback(async (cat: 'Retail' | 'Care') => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/admin/stores');
+      const res = await fetch(`/api/admin/stores?category=${cat}`);
       const data = await res.json();
       setStores(data.stores || []);
+      if (cat === 'Retail') {
+        setRetailCount(data.total || (data.stores ? data.stores.length : 0));
+      } else {
+        setCareCount(data.total || (data.stores ? data.stores.length : 0));
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  // Fetch counts on mount
+  useEffect(() => {
+    fetchStores(activeCategory);
+    // Also fetch the other category count in background
+    const otherCat = activeCategory === 'Retail' ? 'Care' : 'Retail';
+    fetch(`/api/admin/stores?category=${otherCat}`)
+      .then(res => res.json())
+      .then(data => {
+        if (otherCat === 'Retail') setRetailCount(data.total || 0);
+        else setCareCount(data.total || 0);
+      })
+      .catch(() => {});
+  }, [activeCategory, fetchStores]);
+
+  const handleCategorySwitch = (cat: 'Retail' | 'Care') => {
+    if (cat === activeCategory) return;
+    setActiveCategory(cat);
+    setSearchFilter('');
+    setStatusFilter('ALL');
+    setStateFilter('ALL');
+    setCityFilter('ALL');
   };
 
   const handleCreateStore = async (e: React.FormEvent) => {
@@ -89,21 +124,21 @@ export default function AdminPage() {
         longitude: '',
         phone: '080-4699-9888'
       });
-      fetchStores();
+      fetchStores(activeCategory);
     } catch (err) {
       alert('Error creating store');
     }
   };
 
   const handleDeleteStore = async (id: string, posCode: string) => {
-    if (!confirm(`Are you sure you want to deactivate/delete store ${posCode}?`)) return;
+    if (!confirm(`Are you sure you want to deactivate/delete location ${posCode}?`)) return;
     try {
       const res = await fetch(`/api/admin/stores/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        fetchStores();
+        fetchStores(activeCategory);
       }
     } catch (err) {
-      alert('Failed to delete store');
+      alert('Failed to delete location');
     }
   };
 
@@ -114,7 +149,7 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-      fetchStores();
+      fetchStores(activeCategory);
     } catch (err) {
       console.error(err);
     }
@@ -138,7 +173,7 @@ export default function AdminPage() {
       const data = await res.json();
       setImportStatus(data);
       if (res.ok) {
-        fetchStores();
+        fetchStores(activeCategory);
       }
     } catch (err) {
       alert('Upload failed');
@@ -147,38 +182,56 @@ export default function AdminPage() {
     }
   };
 
+  // Unique States and Cities for dynamic filter dropdowns
+  const availableStates = Array.from(new Set(stores.map(s => s.state).filter(Boolean))).sort();
+  const availableCities = Array.from(
+    new Set(
+      stores
+        .filter(s => stateFilter === 'ALL' || s.state === stateFilter)
+        .map(s => s.city)
+        .filter(Boolean)
+    )
+  ).sort();
+
   const filteredStores = stores.filter(s => {
     const q = searchFilter.toLowerCase();
     const matchesSearch =
       s.posCode.toLowerCase().includes(q) ||
       s.storeName.toLowerCase().includes(q) ||
       s.city.toLowerCase().includes(q) ||
+      s.state.toLowerCase().includes(q) ||
       s.pincode.includes(q) ||
+      (s.locationType && s.locationType.toLowerCase().includes(q)) ||
       (s.area && s.area.toLowerCase().includes(q));
 
     const matchesStatus = statusFilter === 'ALL' || s.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesState = stateFilter === 'ALL' || s.state === stateFilter;
+    const matchesCity = cityFilter === 'ALL' || s.city === cityFilter;
+
+    return matchesSearch && matchesStatus && matchesState && matchesCity;
   });
 
   return (
-    <div className="min-h-screen bg-[#fbfbfd]">
+    <div className="min-h-screen bg-[#fbfbfd] dark:bg-[#0a0a0c] text-gray-900 dark:text-gray-100 transition-colors duration-200">
       {/* Admin Navbar */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40 shadow-xs">
+      <header className="bg-white dark:bg-[#0e0e11] border-b border-gray-200 dark:border-white/10 px-6 py-4 sticky top-0 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-blue-600 bg-gray-100 px-3 py-1.5 rounded-lg transition"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 rounded-lg transition"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Customer Locator</span>
             </Link>
-            <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               iPlanet Master Admin Portal
             </h1>
           </div>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
+
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm transition"
@@ -192,16 +245,36 @@ export default function AdminPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Bulk Import Card */}
-        <section className="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-sm">
-          <div className="flex items-start justify-between gap-4 mb-4">
+        <section className="bg-white dark:bg-[#16161a] rounded-3xl p-6 border border-gray-200/80 dark:border-white/10 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
             <div>
-              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <Upload className="w-4 h-4 text-blue-600" />
+              <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Upload className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <span>Bulk Import Store Master (XLSX / CSV)</span>
               </h2>
-              <p className="text-xs text-gray-500 mt-1">
-                Upload Master Sheet.xlsx to update store registry. Validates POS uniqueness, PIN formats, and report duplicates.
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Upload Master Sheet.xlsx or Planet Care CSV to update store registry. Validates POS uniqueness, PIN formats, and reports duplicates.
               </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href="/iPlanet_Store_Import_Template.xlsx"
+                download="iPlanet_Store_Import_Template.xlsx"
+                className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-xs font-semibold rounded-xl border border-blue-200/80 dark:border-blue-800/60 transition flex items-center gap-1.5"
+                title="Download Excel Template"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download XLSX Template</span>
+              </a>
+              <a
+                href="/iPlanet_Store_Import_Template.csv"
+                download="iPlanet_Store_Import_Template.csv"
+                className="px-3 py-1.5 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 text-xs font-semibold rounded-xl border border-gray-200 dark:border-zinc-700 transition flex items-center gap-1.5"
+                title="Download CSV Template"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download CSV</span>
+              </a>
             </div>
           </div>
 
@@ -210,12 +283,12 @@ export default function AdminPage() {
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={(e) => setImportFile(e.target.files ? e.target.files[0] : null)}
-              className="text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+              className="text-xs text-gray-600 dark:text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 dark:file:bg-blue-950/80 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 cursor-pointer"
             />
             <button
               type="submit"
               disabled={!importFile || isImporting}
-              className="px-4 py-2 bg-gray-900 text-white text-xs font-semibold rounded-xl hover:bg-gray-800 disabled:opacity-50 transition flex items-center gap-2"
+              className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-zinc-950 text-xs font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-zinc-200 disabled:opacity-50 transition flex items-center gap-2"
             >
               {isImporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
               <span>Process Import</span>
@@ -242,10 +315,65 @@ export default function AdminPage() {
           )}
         </section>
 
-        {/* Store Master Table */}
-        <section className="bg-white rounded-3xl border border-gray-200/80 shadow-sm overflow-hidden">
+        {/* Master Registry Table Card */}
+        <section className="bg-white dark:bg-[#16161a] rounded-3xl border border-gray-200/80 dark:border-white/10 shadow-sm overflow-hidden">
+          {/* CATEGORY TOGGLE BAR ABOVE TABLE */}
+          <div className="px-6 pt-6 pb-4 border-b border-gray-200/80 dark:border-white/10 bg-gradient-to-r from-gray-50/50 to-white dark:from-[#131317] dark:to-[#16161a] flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <span>Store Master Registry</span>
+              </div>
+              <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
+                {activeCategory === 'Retail' ? 'iPlanet Retail Stores' : 'iPlanet Care & Service Centres'}
+              </h2>
+            </div>
+
+            {/* TOGGLE PILLS: Retail Stores / Care & Service */}
+            <div className="inline-flex items-center p-1 bg-gray-100 dark:bg-zinc-800 rounded-2xl border border-gray-200/70 dark:border-zinc-700 shadow-inner">
+              <button
+                type="button"
+                onClick={() => handleCategorySwitch('Retail')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeCategory === 'Retail'
+                    ? 'bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-400 shadow-sm border border-gray-200/80 dark:border-zinc-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <StoreIcon className={`w-3.5 h-3.5 ${activeCategory === 'Retail' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} />
+                <span>Retail Stores</span>
+                {retailCount !== null && (
+                  <span className={`ml-1 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                    activeCategory === 'Retail' ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {retailCount}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCategorySwitch('Care')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeCategory === 'Care'
+                    ? 'bg-white dark:bg-zinc-900 text-purple-700 dark:text-purple-400 shadow-sm border border-gray-200/80 dark:border-zinc-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Wrench className={`w-3.5 h-3.5 ${activeCategory === 'Care' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'}`} />
+                <span>Care & Service</span>
+                {careCount !== null && (
+                  <span className={`ml-1 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                    activeCategory === 'Care' ? 'bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {careCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
           {/* Filters Bar */}
-          <div className="p-6 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
+          <div className="p-6 border-b border-gray-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-[280px]">
               <div className="relative w-full max-w-sm">
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
@@ -254,14 +382,15 @@ export default function AdminPage() {
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
                   placeholder="Filter by POS code, city, PIN, or name..."
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:bg-white focus:border-blue-500"
+                  className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs outline-none focus:bg-white dark:focus:bg-zinc-900 focus:border-blue-500 text-gray-900 dark:text-white placeholder:text-gray-400"
                 />
               </div>
 
+              {/* Status Filter */}
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-gray-50 border border-gray-200 py-2 px-3 rounded-xl text-xs font-semibold text-gray-700 outline-none"
+                className="bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 py-2 px-3 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-200 outline-none hover:bg-gray-100 dark:hover:bg-zinc-700 transition"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="Active">Active</option>
@@ -269,63 +398,134 @@ export default function AdminPage() {
                 <option value="ComingSoon">Coming Soon</option>
                 <option value="Inactive">Inactive</option>
               </select>
+
+              {/* State Filter */}
+              <select
+                value={stateFilter}
+                onChange={(e) => {
+                  setStateFilter(e.target.value);
+                  setCityFilter('ALL');
+                }}
+                className="bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 py-2 px-3 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-200 outline-none hover:bg-gray-100 dark:hover:bg-zinc-700 transition"
+              >
+                <option value="ALL">All States ({availableStates.length})</option>
+                {availableStates.map(state => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+
+              {/* City Filter */}
+              <select
+                value={cityFilter}
+                onChange={(e) => setCityFilter(e.target.value)}
+                className="bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 py-2 px-3 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-200 outline-none hover:bg-gray-100 dark:hover:bg-zinc-700 transition"
+              >
+                <option value="ALL">All Cities ({availableCities.length})</option>
+                {availableCities.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+
+              {(statusFilter !== 'ALL' || stateFilter !== 'ALL' || cityFilter !== 'ALL' || searchFilter) && (
+                <button
+                  onClick={() => {
+                    setStatusFilter('ALL');
+                    setStateFilter('ALL');
+                    setCityFilter('ALL');
+                    setSearchFilter('');
+                  }}
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold px-2 py-1 transition"
+                >
+                  Reset Filters
+                </button>
+              )}
             </div>
 
-            <div className="text-xs font-bold text-gray-500">
-              Showing {filteredStores.length} of {stores.length} stores
+            <div className="text-xs font-bold text-gray-500 dark:text-gray-400">
+              Showing {filteredStores.length} of {stores.length} {activeCategory === 'Retail' ? 'stores' : 'centres'}
             </div>
           </div>
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-gray-600">
-              <thead className="bg-gray-50/80 text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-200">
+            <table className="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+              <thead className="bg-gray-50/80 dark:bg-zinc-800/80 text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider border-b border-gray-200 dark:border-white/10">
                 <tr>
                   <th className="py-3 px-4">POS Code</th>
+                  <th className="py-3 px-4">Location Type</th>
                   <th className="py-3 px-4">Store Name</th>
-                  <th className="py-3 px-4">City / Area</th>
+                  <th className="py-3 px-4">State / City</th>
+                  <th className="py-3 px-4">Area / Locality</th>
                   <th className="py-3 px-4">PIN Code</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Coordinates</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-10">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600" />
+                    <td colSpan={9} className="text-center py-10">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 dark:text-blue-400" />
                     </td>
                   </tr>
                 ) : filteredStores.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-10 text-gray-400">
-                      No stores found matching your search.
+                    <td colSpan={9} className="text-center py-10 text-gray-400 dark:text-gray-500">
+                      No locations found matching your filter criteria.
                     </td>
                   </tr>
                 ) : (
                   filteredStores.map((store) => (
-                    <tr key={store.id} className="hover:bg-gray-50/60 transition">
-                      <td className="py-3.5 px-4 font-mono font-bold text-gray-900">
+                    <tr key={store.id} className="hover:bg-gray-50/60 dark:hover:bg-zinc-800/40 transition">
+                      <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-white">
                         {store.posCode}
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-gray-900 max-w-[200px] truncate">
+
+                      {/* LOCATION TYPE COLUMN */}
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                            store.locationType === 'iPlanet Care / Service Centre' || store.category === 'Care'
+                              ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60'
+                              : 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60'
+                          }`}
+                        >
+                          {store.locationType === 'iPlanet Care / Service Centre' || store.category === 'Care' ? (
+                            <>
+                              <Wrench className="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" />
+                              <span>iPlanet Care / Service</span>
+                            </>
+                          ) : (
+                            <>
+                              <StoreIcon className="w-3 h-3 text-blue-600 dark:text-blue-400 shrink-0" />
+                              <span>iPlanet Retail Store</span>
+                            </>
+                          )}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-white max-w-[200px] truncate" title={store.storeName}>
                         {store.storeName}
                       </td>
                       <td className="py-3.5 px-4">
-                        {store.city} {store.area ? `(${store.area})` : ''}
+                        <div className="font-semibold text-gray-800 dark:text-gray-200">{store.city}</div>
+                        <div className="text-[11px] text-gray-400 dark:text-gray-500">{store.state}</div>
                       </td>
-                      <td className="py-3.5 px-4 font-mono">{store.pincode}</td>
+                      <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400 max-w-[150px] truncate" title={store.area || store.locality || '—'}>
+                        {store.area || store.locality || '—'}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-gray-700 dark:text-gray-300">{store.pincode}</td>
                       <td className="py-3.5 px-4">
                         <select
                           value={store.status}
                           onChange={(e) => handleStatusChange(store.id, e.target.value as StoreStatus)}
                           className={`text-xs font-bold py-1 px-2 rounded-lg border outline-none ${
                             store.status === 'Active'
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                               : store.status === 'TemporarilyClosed'
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-gray-100 text-gray-700 border-gray-300'
+                              ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                              : 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-zinc-700'
                           }`}
                         >
                           <option value="Active">Active</option>
@@ -334,14 +534,14 @@ export default function AdminPage() {
                           <option value="Inactive">Inactive</option>
                         </select>
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-[11px] text-gray-400">
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-gray-400 dark:text-gray-500">
                         {store.latitude && store.longitude ? `${store.latitude}, ${store.longitude}` : 'Pending'}
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <button
                           onClick={() => handleDeleteStore(store.id, store.posCode)}
-                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                          title="Delete Store"
+                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition"
+                          title="Delete Location"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -357,71 +557,71 @@ export default function AdminPage() {
 
       {/* Add Store Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Add New iPlanet Store</h3>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#16161a] rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-white/10 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Add New iPlanet Store</h3>
             <form onSubmit={handleCreateStore} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">POS Code *</label>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">POS Code *</label>
                   <input
                     type="text"
                     required
                     value={newStore.posCode}
                     onChange={(e) => setNewStore({ ...newStore, posCode: e.target.value.toUpperCase() })}
                     placeholder="e.g. RMM"
-                    className="w-full p-2.5 bg-gray-50 border rounded-xl font-mono"
+                    className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl font-mono text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Store Name *</label>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Store Name *</label>
                   <input
                     type="text"
                     required
                     value={newStore.storeName}
                     onChange={(e) => setNewStore({ ...newStore, storeName: e.target.value })}
                     placeholder="iPlanet Royal Meenakshi Mall"
-                    className="w-full p-2.5 bg-gray-50 border rounded-xl"
+                    className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Full Address *</label>
+                <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Full Address *</label>
                 <textarea
                   required
                   rows={2}
                   value={newStore.address}
                   onChange={(e) => setNewStore({ ...newStore, address: e.target.value })}
                   placeholder="Full street address..."
-                  className="w-full p-2.5 bg-gray-50 border rounded-xl"
+                  className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">City *</label>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">City *</label>
                   <input
                     type="text"
                     required
                     value={newStore.city}
                     onChange={(e) => setNewStore({ ...newStore, city: e.target.value })}
                     placeholder="Bengaluru"
-                    className="w-full p-2.5 bg-gray-50 border rounded-xl"
+                    className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Area / Locality</label>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Area / Locality</label>
                   <input
                     type="text"
                     value={newStore.area}
                     onChange={(e) => setNewStore({ ...newStore, area: e.target.value })}
                     placeholder="Bannerghatta Rd"
-                    className="w-full p-2.5 bg-gray-50 border rounded-xl"
+                    className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">PIN Code *</label>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">PIN Code *</label>
                   <input
                     type="text"
                     required
@@ -429,41 +629,41 @@ export default function AdminPage() {
                     value={newStore.pincode}
                     onChange={(e) => setNewStore({ ...newStore, pincode: e.target.value })}
                     placeholder="560076"
-                    className="w-full p-2.5 bg-gray-50 border rounded-xl font-mono"
+                    className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl font-mono text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Latitude</label>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Latitude</label>
                   <input
                     type="number"
                     step="any"
                     value={newStore.latitude}
                     onChange={(e) => setNewStore({ ...newStore, latitude: e.target.value })}
                     placeholder="12.8752"
-                    className="w-full p-2.5 bg-gray-50 border rounded-xl font-mono"
+                    className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl font-mono text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Longitude</label>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Longitude</label>
                   <input
                     type="number"
                     step="any"
                     value={newStore.longitude}
                     onChange={(e) => setNewStore({ ...newStore, longitude: e.target.value })}
                     placeholder="77.5959"
-                    className="w-full p-2.5 bg-gray-50 border rounded-xl font-mono"
+                    className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl font-mono text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 border rounded-xl text-gray-700 font-semibold"
+                  className="px-4 py-2 border dark:border-zinc-700 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 font-semibold"
                 >
                   Cancel
                 </button>
