@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Store, StoreStatus } from '@/types/store';
 import {
   ArrowLeft,
@@ -16,11 +17,22 @@ import {
   Store as StoreIcon,
   Wrench,
   Layers,
-  MapPin
+  MapPin,
+  LogOut
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function AdminPage() {
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await fetch('/api/admin/logout', { method: 'POST' });
+    router.push('/admin/login');
+    router.refresh();
+  };
+
   const [activeCategory, setActiveCategory] = useState<'Retail' | 'Care'>('Retail');
   const [stores, setStores] = useState<Store[]>([]);
   const [searchFilter, setSearchFilter] = useState('');
@@ -238,6 +250,15 @@ export default function AdminPage() {
             >
               <Plus className="w-4 h-4" />
               <span>Add New Store</span>
+            </button>
+
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 bg-gray-100 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl text-xs font-semibold transition disabled:opacity-50"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
             </button>
           </div>
         </div>
