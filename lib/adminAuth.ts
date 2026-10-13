@@ -4,7 +4,7 @@ const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 function base64url(bytes: ArrayBuffer | Uint8Array): string {
   const buf = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   let str = '';
-  for (const b of buf) str += String.fromCharCode(b);
+  for (let i = 0; i < buf.length; i++) str += String.fromCharCode(buf[i]);
   return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
@@ -51,7 +51,7 @@ export async function verifySessionToken(token: string | undefined | null): Prom
     const valid = await crypto.subtle.verify(
       'HMAC',
       key,
-      base64urlToBytes(sigB64),
+      base64urlToBytes(sigB64) as BufferSource,
       new TextEncoder().encode(payloadB64)
     );
     if (!valid) return false;
