@@ -55,8 +55,18 @@ PORT=3000
 # PostgreSQL Database (Optional - application runs out-of-the-box with JSON store master)
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/iplanet_locator?schema=public
 
-# Google Maps Platform (Server-Side)
-# Optional: The app operates with internal Indian PIN/Landmark geocoding and Haversine distance if left empty
+# ============================================================================
+# MAPPING & ROUTING APIs (Choose one or more)
+# ============================================================================
+
+# OLA MAPS (RECOMMENDED - FREE TIER)
+# Free tier: First 100,000 monthly API calls at ₹0
+# Get API key: https://maps.olakrutrim.com
+OLA_MAPS_API_KEY=
+
+# Google Maps Platform (Server-Side) - OPTIONAL FALLBACK
+# Only used if OLA_MAPS_API_KEY is not configured
+# The app operates with internal Indian PIN/Landmark geocoding and Haversine distance if both are empty
 GOOGLE_MAPS_API_KEY=
 GOOGLE_PLACES_API_KEY=
 GOOGLE_ROUTES_API_KEY=
@@ -69,7 +79,49 @@ ADMIN_PASSWORD=admin@iplanet2026
 ADMIN_SESSION_SECRET=iplanet_super_secret_jwt_key_2026
 ```
 
-### 3. Running the Application
+#### Mapping API Priority (Automatic Fallback Strategy)
+The application intelligently selects the best available API:
+
+| Priority | API | Status | Cost | Coverage |
+|----------|-----|--------|------|----------|
+| **1** | **Ola Maps** | ✅ Free tier | ₹0 (100k calls/month) | India-optimized |
+| **2** | Google Maps | Fallback | Pay-per-use | Global |
+| **3** | India Postal API | Always active | Free | PIN codes only |
+| **4** | OpenStreetMap Nominatim | Always active | Free | Landmarks & cities |
+| **5** | Haversine Calculator | Built-in | Free | Straight-line distance |
+
+### 3. Get API Keys (Optional)
+
+#### Ola Maps (FREE - RECOMMENDED)
+1. Visit [maps.olakrutrim.com](https://maps.olakrutrim.com)
+2. Sign up for a free account
+3. Create a new project and generate API key
+4. Add to `.env`:
+   ```env
+   OLA_MAPS_API_KEY=your_api_key_here
+   ```
+
+**Benefits:**
+- ✅ Free tier: 100,000 API calls/month at ₹0
+- ✅ India-optimized mapping and routing
+- ✅ Distance Matrix API for multiple origin-destination pairs
+- ✅ Automatic fallback to Google Maps if needed
+
+#### Google Maps (OPTIONAL FALLBACK)
+1. Visit [Google Cloud Console](https://console.cloud.google.com)
+2. Enable: Maps JavaScript API, Geocoding API, Distance Matrix API
+3. Create API key
+4. Add to `.env`:
+   ```env
+   GOOGLE_MAPS_API_KEY=your_api_key_here
+   ```
+
+**Note:** The application works **100% FREE** without any API keys using:
+- India Postal API (PIN code resolution)
+- OpenStreetMap Nominatim (landmark/city geocoding)
+- Internal Haversine distance calculator
+
+### 4. Running the Application
 The application is pre-built and running on **http://localhost:3000**.
 
 To run in development or production mode manually:
@@ -80,6 +132,25 @@ npm run dev
 # Or build and launch production server
 npm run build
 npm run start
+```
+
+---
+
+### 5. Verify API Integration (Optional)
+
+To test that your Ola Maps or Google Maps API is working:
+
+```bash
+# Search for a location using the web app
+# http://localhost:3000
+
+# Try these test queries:
+# - PIN code: 600016 (Chennai)
+# - Landmark: Whitefield (Bengaluru)
+# - City: Coimbatore
+# - Store code: RMM, VAL1, CBE1
+
+# Check browser console or server logs to see which API is being used
 ```
 
 ---

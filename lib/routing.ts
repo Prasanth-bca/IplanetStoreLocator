@@ -38,8 +38,27 @@ export async function calculateRoute(
   destLat: number,
   destLng: number
 ): Promise<RouteInfo> {
-  const routesKey = process.env.GOOGLE_ROUTES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
+  // Strategy 1: Try Ola Maps Distance Matrix API (FREE tier: 100k calls/month)
+  if (process.env.OLA_MAPS_API_KEY) {
+    try {
+      const { getOlaDistance } = await import('./olaMaps');
+      const olaResult = await getOlaDistance(originLat, originLng, destLat, destLng);
 
+      if (olaResult) {
+        return {
+          distanceKm: olaResult.distance_km,
+          travelTimeMinutes: olaResult.duration_minutes,
+          trafficLevel: null,
+          isLiveTraffic: false
+        };
+      }
+    } catch (err) {
+      console.warn('Ola Maps Distance Matrix API call failed:', err);
+    }
+  }
+
+  // Strategy 2: Try Google Distance Matrix / Routes API (fallback)
+  const routesKey = process.env.GOOGLE_ROUTES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
   if (routesKey) {
     try {
       const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originLat},${originLng}&destinations=${destLat},${destLng}&mode=driving&departure_time=now&key=${routesKey}`;
@@ -72,7 +91,7 @@ export async function calculateRoute(
     }
   }
 
-  // Internal Fallback Estimation (City road factor ~1.25x Haversine, average speed 25-30 km/h)
+  // Strategy 3: Internal Fallback Estimation (City road factor ~1.25x Haversine, average speed 25-30 km/h)
   const straightDist = calculateHaversineDistance(originLat, originLng, destLat, destLng);
   const roadDist = Math.round(straightDist * 1.25 * 10) / 10;
   const minutes = Math.max(2, Math.round((roadDist / 28) * 60));
