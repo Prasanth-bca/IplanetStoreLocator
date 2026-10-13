@@ -64,3 +64,10 @@ Desktop.ini
 # Exceptions: keep project documentation and examples
 !iPlanet AI Store Locator.md
 !Master Sheet.xlsx
+.vercel
+.env*
+
+# Local AI tooling artifacts
+.agents/
+.claude/
+skills-lock.json

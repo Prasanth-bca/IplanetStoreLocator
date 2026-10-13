@@ -36,7 +36,7 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
 
   // 2. Fetch live store records directly from the database (never from hardcoded lists)
   // Only consider 'Active' stores
-  const allDatabaseStores = getAllStores(category).filter(s => s.status === 'Active');
+  const allDatabaseStores = (await getAllStores(category)).filter(s => s.status === 'Active');
 
   const requestedLimit = directLimit || parsed.requestedCount || 3;
   const effectivePincode = directPincode || parsed.pincodeMatch;

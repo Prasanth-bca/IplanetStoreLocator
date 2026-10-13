@@ -5,13 +5,18 @@
   "description": "iPlanet AI Store Locator - Intelligent Store Discovery & Ranking Engine",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@types/better-sqlite3": "^9.6.0",
-    "better-sqlite3": "^13.0.3",
+    "@prisma/client": "6.19.3",
     "clsx": "^2.1.1",
     "lucide-react": "^1.16.0",
     "next": "^14.2.15",
@@ -26,7 +31,15 @@
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
+    "prisma": "6.19.3",
     "tailwindcss": "^3.4.14",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.3"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.2": true
   }
 }

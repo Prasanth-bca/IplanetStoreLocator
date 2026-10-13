@@ -1,124 +1,48 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
-enum StoreStatus {
-  Active
-  Inactive
-  TemporarilyClosed
-  ComingSoon
-}
-
-enum StoreCategory {
-  Retail
-  Care
-}
-
-model RetailStore {
-  id            String        @id @default(uuid())
-  posCode       String        @unique @map("pos_code")
-  storeName     String        @map("store_name")
-  storeType     String        @default("Retail") @map("store_type")
-  category      StoreCategory @default(Retail)
-  brand         String        @default("iPlanet")
+model Store {
+  id            String   @id
+  posCode       String   @unique @map("pos_code")
+  storeName     String   @map("store_name")
+  storeType     String   @default("Retail") @map("store_type")
+  category      String   @default("Retail")
+  locationType  String   @default("iPlanet Retail Store") @map("location_type")
+  brand         String   @default("iPlanet")
   address       String
   area          String?
   locality      String?
   city          String
   state         String
-  country       String        @default("India")
+  country       String   @default("India")
   pincode       String
   landmark      String?
   latitude      Float?
   longitude     Float?
   phone         String?
-  contactPerson String?       @map("contact_person")
-  storeManager  String?       @map("store_manager")
-  openingTime   String?       @default("10:00 AM") @map("opening_time")
-  closingTime   String?       @default("09:30 PM") @map("closing_time")
-  workingDays   String?       @default("Monday to Sunday") @map("working_days")
-  googlePlaceId String?       @map("google_place_id")
-  googleMapsUrl String?       @map("google_maps_url")
-  status        StoreStatus   @default(Active)
-  priority      Int           @default(0)
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
+  contactPerson String?  @map("contact_person")
+  storeManager  String?  @map("store_manager")
+  openingTime   String?  @default("10:00 AM") @map("opening_time")
+  closingTime   String?  @default("09:30 PM") @map("closing_time")
+  workingDays   String?  @default("Monday to Sunday") @map("working_days")
+  googlePlaceId String?  @map("google_place_id")
+  googleMapsUrl String?  @map("google_maps_url")
+  status        String   @default("Active")
+  priority      Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  // Extensibility for product inventory and appointments
-  products      StoreProduct[]
-
-  @@map("retail_stores")
+  @@map("stores")
+  @@index([category])
+  @@index([status])
   @@index([city])
   @@index([pincode])
-  @@index([posCode])
-}
-
-model CareCentre {
-  id            String        @id @default(uuid())
-  posCode       String        @unique @map("pos_code")
-  storeName     String        @map("store_name")
-  storeType     String        @default("Care") @map("store_type")
-  category      StoreCategory @default(Care)
-  brand         String        @default("iPlanet")
-  address       String
-  area          String?
-  locality      String?
-  city          String
-  state         String
-  country       String        @default("India")
-  pincode       String
-  landmark      String?
-  latitude      Float?
-  longitude     Float?
-  phone         String?
-  contactPerson String?       @map("contact_person")
-  storeManager  String?       @map("store_manager")
-  openingTime   String?       @default("10:00 AM") @map("opening_time")
-  closingTime   String?       @default("08:00 PM") @map("closing_time")
-  workingDays   String?       @default("Monday to Saturday") @map("working_days")
-  googlePlaceId String?       @map("google_place_id")
-  googleMapsUrl String?       @map("google_maps_url")
-  status        StoreStatus   @default(Active)
-  priority      Int           @default(0)
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-
-  @@map("care_centres")
-  @@index([city])
-  @@index([pincode])
-  @@index([posCode])
-}
-
-model SearchLog {
-  id               String   @id @default(uuid())
-  timestamp        DateTime @default(now())
-  query            String   @map("search_query")
-  detectedLocation String?  @map("detected_location")
-  searchType       String?  @map("search_type")
-  numberOfResults  Int      @default(0) @map("number_of_results")
-  selectedStore    String?  @map("selected_store")
-  responseTimeMs   Int?     @map("response_time_ms")
-
-  @@map("search_logs")
-}
-
-// Future extensibility schema for device/product availability
-model StoreProduct {
-  id           String      @id @default(uuid())
-  storeId      String      @map("store_id")
-  store        RetailStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  productModel String      @map("product_model") // e.g. "iPhone 16 Pro 256GB Black Titanium"
-  sku          String
-  stockCount   Int         @default(0) @map("stock_count")
-  inStock      Boolean     @default(true) @map("in_stock")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
-
-  @@map("store_products")
-  @@index([storeId])
-  @@index([productModel])
+  @@index([locationType])
 }

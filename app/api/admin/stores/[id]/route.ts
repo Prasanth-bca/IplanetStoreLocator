@@ -8,7 +8,7 @@ export async function PUT(
   try {
     const { id } = params;
     const body = await request.json();
-    const updated = updateStore(id, body);
+    const updated = await updateStore(id, body);
     if (!updated) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 });
     }
@@ -24,7 +24,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = params;
-    const success = deleteStore(id);
+    const success = await deleteStore(id);
     if (!success) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 });
     }

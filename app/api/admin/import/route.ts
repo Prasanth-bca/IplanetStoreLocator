@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const sheet = workbook.Sheets[sheetName];
     const rawData = xlsx.utils.sheet_to_json<any>(sheet, { defval: '' });
 
-    const existingStores = getRetailStores();
+    const existingStores = await getRetailStores();
     const existingPosMap = new Set(existingStores.map(s => s.posCode.toUpperCase()));
 
     const importedStores: Store[] = [];
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     if (importedStores.length > 0) {
       const merged = [...existingStores, ...importedStores];
-      saveRetailStores(merged);
+      await saveRetailStores(merged);
     }
 
     return NextResponse.json({

@@ -5,14 +5,14 @@ import { Store } from '@/types/store';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get('category') || 'Retail';
-  const stores = category === 'Care' ? getCareCentres() : getRetailStores();
+  const stores = category === 'Care' ? await getCareCentres() : await getRetailStores();
   return NextResponse.json({ total: stores.length, stores });
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const stores = getRetailStores();
+    const stores = await getRetailStores();
 
     // Validate POS Code
     const posCode = (body.posCode || '').trim();
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     };
 
     stores.push(newStore);
-    saveRetailStores(stores);
+    await saveRetailStores(stores);
 
     return NextResponse.json({ success: true, store: newStore });
   } catch (err) {
