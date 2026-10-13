@@ -28,8 +28,8 @@ export default function AdminPage() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    await fetch('/api/admin/logout', { method: 'POST' });
-    router.push('/admin/login');
+    await fetch('/api/logout', { method: 'POST' });
+    router.push('/login');
     router.refresh();
   };
 

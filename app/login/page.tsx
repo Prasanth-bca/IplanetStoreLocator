@@ -2,18 +2,17 @@
 
 import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { Lock, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, Loader2, AlertCircle } from 'lucide-react';
 
-export default function AdminLoginPage() {
+export default function LoginPage() {
   return (
     <Suspense fallback={null}>
-      <AdminLoginForm />
+      <LoginForm />
     </Suspense>
   );
 }
 
-function AdminLoginForm() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [password, setPassword] = useState('');
@@ -26,7 +25,7 @@ function AdminLoginForm() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/admin/login', {
+      const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -39,7 +38,7 @@ function AdminLoginForm() {
         return;
       }
 
-      const next = searchParams.get('next') || '/admin';
+      const next = searchParams.get('next') || '/';
       router.push(next);
       router.refresh();
     } catch {
@@ -51,24 +50,16 @@ function AdminLoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] dark:bg-[#0a0a0c] text-gray-900 dark:text-gray-100 px-4 transition-colors duration-200">
       <div className="w-full max-w-sm">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mb-6 transition"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Customer Locator</span>
-        </Link>
-
         <div className="bg-white dark:bg-[#16161a] rounded-3xl p-8 border border-gray-200/80 dark:border-white/10 shadow-sm">
           <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 mb-5">
             <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
 
           <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-1">
-            Admin Portal
+            iPlanet Store Locator
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            Enter the admin password to manage the iPlanet store registry.
+            Enter the password to continue.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -2,17 +2,27 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Settings, MapPin } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ShieldCheck, Settings, MapPin, LogOut } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export const Navbar: React.FC = () => {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await fetch('/api/logout', { method: 'POST' });
+    router.push('/login');
+    router.refresh();
+  };
 
   return (
     <header
@@ -75,6 +85,15 @@ export const Navbar: React.FC = () => {
             <Settings className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Admin</span>
           </Link>
+
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-red-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-red-200 transition-all duration-150 disabled:opacity-50"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </div>
     </header>
