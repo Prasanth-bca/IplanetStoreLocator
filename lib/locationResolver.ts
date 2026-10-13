@@ -50,12 +50,17 @@ export async function resolveLocation(
     resolved = await resolveViaPostalPincode(pincode);
   }
 
-  // Strategy 2: Google Maps Geocoding API if configured
+  // Strategy 2: Ola Maps Geocoding (FREE tier, India-optimized)
+  if (!resolved) {
+    resolved = await resolveViaOlaMaps(query);
+  }
+
+  // Strategy 3: Google Maps Geocoding API if configured
   if (!resolved) {
     resolved = await resolveViaGoogleMaps(query);
   }
 
-  // Strategy 3: OpenStreetMap Nominatim Live Geocoding
+  // Strategy 4: OpenStreetMap Nominatim Live Geocoding
   if (!resolved) {
     resolved = await resolveViaNominatim(pincode || query);
   }
@@ -121,6 +126,30 @@ async function resolveViaPostalPincode(pincode: string): Promise<GeocodedLocatio
     }
   } catch (err) {
     console.warn(`[LocationResolver] Postal PIN API lookup failed for ${pincode}:`, err);
+  }
+
+  return null;
+}
+
+/**
+ * Resolves location using Ola Maps Geocoding API (FREE tier, India-optimized)
+ */
+async function resolveViaOlaMaps(query: string): Promise<GeocodedLocation | null> {
+  try {
+    const { getOlaGeocoding } = await import('./olaMaps');
+    const result = await getOlaGeocoding(query);
+
+    if (result) {
+      return {
+        lat: result.lat,
+        lng: result.lng,
+        city: result.city,
+        area: result.area,
+        name: result.name
+      };
+    }
+  } catch (err) {
+    console.warn(`[LocationResolver] Ola Maps lookup failed for "${query}":`, err);
   }
 
   return null;
