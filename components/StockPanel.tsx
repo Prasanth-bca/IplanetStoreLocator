@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { Package, Phone, Search, X } from 'lucide-react';
+import { Package, Search, X } from 'lucide-react';
 import { Status, StatusPill, timeAgo } from '@/components/stockUi';
 
 interface StockItem {
@@ -10,14 +9,13 @@ interface StockItem {
   name: string;
   category: string;
   variant: string | null;
+  quantity: number | null;
   status: Status;
   updatedAt: string | null;
 }
 
 interface StockPanelProps {
   posCode: string;
-  storeName: string;
-  phone?: string | null;
   onClose: () => void;
 }
 
@@ -28,7 +26,15 @@ const chip = (active: boolean) =>
       : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-300 hover:border-blue-400'
   }`;
 
-export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, phone, onClose }) => {
+const QTY_TONE: Record<Status, string> = {
+  in_stock: 'text-emerald-600 dark:text-emerald-400',
+  low: 'text-amber-600 dark:text-amber-400',
+  out: 'text-red-600 dark:text-red-400',
+  unknown: 'text-gray-400',
+};
+
+/** Stock list shown inline inside a store card: one row per product with its available quantity. */
+export const StockPanel: React.FC<StockPanelProps> = ({ posCode, onClose }) => {
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,20 +60,8 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, phon
     };
   }, [posCode, reloadKey]);
 
-  // Close on Escape and stop the page behind the sheet from scrolling.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
   const categories = useMemo(() => ['All', ...Array.from(new Set(items.map(i => i.category)))], [items]);
-  const available = items.filter(i => i.status === 'in_stock' || i.status === 'low').length;
+  const availableCount = items.filter(i => i.status === 'in_stock' || i.status === 'low').length;
   const lastUpdated = items.reduce<string | null>((a, i) => (i.updatedAt && (!a || i.updatedAt > a) ? i.updatedAt : a), null);
 
   const grouped = useMemo(() => {
@@ -82,66 +76,46 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, phon
     return Array.from(map.entries());
   }, [items, query, category, availableOnly]);
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : null;
-
-  // Portal to <body>: the store card's entrance animation creates a containing block that would trap `fixed`.
-  if (!mounted) return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] sm:p-4 animate-fadeIn"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Stock availability at ${storeName}`}
+  return (
+    <section
+      className="mt-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50/60 dark:bg-zinc-900/40 overflow-hidden animate-fadeIn"
+      aria-label={`Stock available at ${posCode}`}
     >
-      <div
-        className="bg-white dark:bg-[#16161a] w-full sm:max-w-xl h-[88vh] sm:h-auto sm:max-h-[85vh] flex flex-col rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/10 shadow-2xl animate-fadeInUp"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="px-5 pt-3 sm:pt-5 pb-4 border-b border-gray-100 dark:border-white/10">
-          <div className="sm:hidden mx-auto mb-3 h-1 w-10 rounded-full bg-gray-300 dark:bg-zinc-700" />
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                <Package className="w-3.5 h-3.5" /> Stock availability
-              </div>
-              <h3 className="text-lg font-extrabold text-gray-950 dark:text-white leading-snug truncate">{storeName}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                POS <span className="font-mono font-semibold">{posCode}</span>
-                {!loading && !error && items.length > 0 && (
-                  <>
-                    {' '}· <span className="font-semibold text-gray-700 dark:text-gray-200">{available} of {items.length}</span> products available
-                  </>
-                )}
-              </p>
-            </div>
-            <button onClick={onClose} aria-label="Close" className="p-2 -mr-1 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-200 dark:border-white/10 bg-white dark:bg-[#16161a]">
+        <div className="flex items-center gap-2 min-w-0">
+          <Package className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+          <h4 className="text-sm font-extrabold text-gray-950 dark:text-white">Stock available</h4>
+          {!loading && !error && items.length > 0 && (
+            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {availableCount} of {items.length} products
+            </span>
+          )}
+        </div>
+        <button onClick={onClose} aria-label="Hide stock" className="p-1.5 -mr-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
 
-          <div className="relative mt-4">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+      {/* Filters */}
+      {!loading && !error && items.length > 0 && (
+        <div className="px-4 pt-3 space-y-2.5">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search a product, e.g. iPhone 16"
               aria-label="Search products"
-              className="w-full pl-10 pr-9 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+              className="w-full pl-9 pr-8 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
             />
             {query && (
-              <button onClick={() => setQuery('')} aria-label="Clear search" className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600">
-                <X className="w-4 h-4" />
+              <button onClick={() => setQuery('')} aria-label="Clear search" className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600">
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
-
-          <div className="flex items-center gap-2 mt-3 overflow-x-auto no-scrollbar pb-0.5 -mx-1 px-1">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
             {categories.map(c => (
               <button key={c} onClick={() => setCategory(c)} className={chip(category === c)}>
                 {c}
@@ -153,92 +127,95 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, phon
             </button>
           </div>
         </div>
+      )}
 
-        {/* List */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-          {loading && (
-            <div className="space-y-3" aria-busy="true" aria-label="Loading stock">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between gap-3 animate-pulse">
-                  <div className="space-y-2 flex-1">
-                    <div className="h-3.5 w-2/3 rounded bg-gray-200 dark:bg-zinc-800" />
-                    <div className="h-2.5 w-1/3 rounded bg-gray-100 dark:bg-zinc-800/70" />
-                  </div>
-                  <div className="h-6 w-20 rounded-full bg-gray-200 dark:bg-zinc-800" />
+      {/* List */}
+      <div className="px-4 py-3 max-h-[380px] overflow-y-auto">
+        {loading && (
+          <div className="space-y-3" aria-busy="true" aria-label="Loading stock">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-3 animate-pulse">
+                <div className="space-y-2 flex-1">
+                  <div className="h-3.5 w-2/3 rounded bg-gray-200 dark:bg-zinc-800" />
+                  <div className="h-2.5 w-1/3 rounded bg-gray-100 dark:bg-zinc-800/70" />
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="h-6 w-16 rounded-full bg-gray-200 dark:bg-zinc-800" />
+              </div>
+            ))}
+          </div>
+        )}
 
-          {error && (
-            <div className="text-center py-10">
-              <p className="text-sm text-red-600 mb-3">{error}</p>
-              <button onClick={() => setReloadKey(k => k + 1)} className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold">
-                Try again
-              </button>
-            </div>
-          )}
+        {error && (
+          <div className="text-center py-6">
+            <p className="text-sm text-red-600 mb-3">{error}</p>
+            <button onClick={() => setReloadKey(k => k + 1)} className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold">
+              Try again
+            </button>
+          </div>
+        )}
 
-          {!loading && !error && items.length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-10">Stock details haven&apos;t been set up yet. Please call the store.</p>
-          )}
+        {!loading && !error && items.length === 0 && (
+          <p className="text-sm text-gray-500 text-center py-6">Stock details haven&apos;t been set up yet. Please call the store.</p>
+        )}
 
-          {!loading && !error && items.length > 0 && grouped.length === 0 && (
-            <div className="text-center py-10">
-              <p className="text-sm text-gray-500 mb-2">No products match your filters.</p>
-              <button
-                onClick={() => {
-                  setQuery('');
-                  setCategory('All');
-                  setAvailableOnly(false);
-                }}
-                className="text-sm font-semibold text-blue-600 dark:text-blue-400"
-              >
-                Clear filters
-              </button>
-            </div>
-          )}
-
-          {grouped.map(([cat, list]) => (
-            <section key={cat}>
-              <h4 className="text-[10px] uppercase tracking-widest font-bold text-gray-500 dark:text-gray-400 mb-2">
-                {cat} <span className="text-gray-400 font-medium">· {list.length}</span>
-              </h4>
-              <ul className="divide-y divide-gray-100 dark:divide-white/5 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
-                {list.map(it => (
-                  <li key={it.sku} className="flex items-center justify-between gap-3 px-4 py-3 bg-white dark:bg-[#16161a]">
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{it.name}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {it.variant ?? 'Standard'} · {timeAgo(it.updatedAt)}
-                      </div>
-                    </div>
-                    <StatusPill status={it.status} />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-gray-100 dark:border-white/10 flex items-center justify-between gap-3">
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-snug">
-            {lastUpdated ? `Last store update: ${timeAgo(lastUpdated).replace('Updated ', '')}. ` : ''}
-            Stock changes through the day, so call to confirm before you visit.
-          </p>
-          {telHref && (
-            <a
-              href={telHref}
-              className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold no-underline"
-              style={{ textDecoration: 'none' }}
+        {!loading && !error && items.length > 0 && grouped.length === 0 && (
+          <div className="text-center py-6">
+            <p className="text-sm text-gray-500 mb-2">No products match your filters.</p>
+            <button
+              onClick={() => {
+                setQuery('');
+                setCategory('All');
+                setAvailableOnly(false);
+              }}
+              className="text-sm font-semibold text-blue-600 dark:text-blue-400"
             >
-              <Phone className="w-3.5 h-3.5" /> Call store
-            </a>
-          )}
-        </div>
+              Clear filters
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && grouped.length > 0 && (
+          <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#16161a] overflow-hidden">
+            <div className="grid grid-cols-[minmax(0,1fr)_48px] sm:grid-cols-[minmax(0,1fr)_72px_120px] gap-3 px-3 py-2 text-[10px] uppercase tracking-widest font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800/60 border-b border-gray-100 dark:border-white/10">
+              <span>Product</span>
+              <span className="text-right">Qty</span>
+              <span className="hidden sm:block text-right">Status</span>
+            </div>
+            {grouped.map(([cat, list]) => (
+              <div key={cat}>
+                <div className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold text-gray-500 dark:text-gray-400 bg-gray-50/70 dark:bg-zinc-900/50 border-b border-gray-100 dark:border-white/5">
+                  {cat}
+                </div>
+                <ul className="divide-y divide-gray-100 dark:divide-white/5">
+                  {list.map(it => (
+                    <li key={it.sku} className="grid grid-cols-[minmax(0,1fr)_48px] sm:grid-cols-[minmax(0,1fr)_72px_120px] gap-3 items-center px-3 py-2.5">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white sm:truncate">{it.name}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 sm:truncate">{it.variant ?? 'Standard'}</div>
+                        {/* On phones the status sits under the name so the name keeps its width */}
+                        <div className="sm:hidden mt-1.5">
+                          <StatusPill status={it.status} label={it.status === 'unknown' ? 'Call store' : undefined} />
+                        </div>
+                      </div>
+                      <div className={`text-right text-base font-extrabold tabular-nums ${QTY_TONE[it.status]}`}>{it.quantity ?? '–'}</div>
+                      <div className="hidden sm:flex justify-end">
+                        <StatusPill status={it.status} label={it.status === 'unknown' ? 'Call store' : undefined} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </div>,
-    document.body
+
+      {!loading && !error && items.length > 0 && (
+        <p className="px-4 pb-3 text-[11px] text-gray-500 dark:text-gray-400 leading-snug">
+          {lastUpdated ? `Last updated ${timeAgo(lastUpdated).replace('Updated ', '')}. ` : ''}
+          Quantities change through the day, so call the store to confirm before you visit.
+        </p>
+      )}
+    </section>
   );
 };

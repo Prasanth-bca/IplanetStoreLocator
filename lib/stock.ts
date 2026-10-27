@@ -75,7 +75,12 @@ export interface StockChange {
   lowStockThreshold?: number;
 }
 
-/** Applies changes atomically and records a StockMovement for every quantity that actually changed. */
+/**
+ * Applies changes atomically and records a StockMovement for every quantity that actually changed.
+ *
+ * Round trips are kept to a minimum (one read, one upsert per product, one batched insert) because
+ * each query pays the network latency to the database, and the transaction has a time limit.
+ */
 export async function applyStockChanges(
   storeId: string,
   changes: StockChange[],
@@ -83,33 +88,41 @@ export async function applyStockChanges(
   note: string | null,
   user: string
 ) {
-  return prisma.$transaction(async tx => {
-    let updated = 0;
-    for (const c of changes) {
-      const existing = await tx.storeStock.findUnique({
-        where: { storeId_productId: { storeId, productId: c.productId } },
+  return prisma.$transaction(
+    async tx => {
+      const existingRows = await tx.storeStock.findMany({
+        where: { storeId, productId: { in: changes.map(c => c.productId) } },
       });
-      const current = existing?.quantity ?? 0;
-      const next =
-        c.quantity !== undefined ? c.quantity : c.delta !== undefined ? current + c.delta : current;
-      if (!Number.isInteger(next) || next < 0) {
-        throw new Error(`Invalid quantity for product ${c.productId}: ${next}`);
-      }
-      const threshold = c.lowStockThreshold ?? existing?.lowStockThreshold ?? 2;
+      const existingBy = new Map(existingRows.map(r => [r.productId, r]));
 
-      await tx.storeStock.upsert({
-        where: { storeId_productId: { storeId, productId: c.productId } },
-        create: { storeId, productId: c.productId, quantity: next, lowStockThreshold: threshold, updatedBy: user },
-        update: { quantity: next, lowStockThreshold: threshold, updatedBy: user },
-      });
+      const movements: { storeId: string; productId: string; delta: number; newQty: number; reason: string; note: string | null; user: string }[] = [];
 
-      if (next !== current || !existing) {
-        await tx.stockMovement.create({
-          data: { storeId, productId: c.productId, delta: next - current, newQty: next, reason, note, user },
+      for (const c of changes) {
+        const existing = existingBy.get(c.productId);
+        const current = existing?.quantity ?? 0;
+        const next =
+          c.quantity !== undefined ? c.quantity : c.delta !== undefined ? current + c.delta : current;
+        if (!Number.isInteger(next) || next < 0) {
+          throw new Error(`Invalid quantity for product ${c.productId}: ${next}`);
+        }
+        const threshold = c.lowStockThreshold ?? existing?.lowStockThreshold ?? 2;
+
+        await tx.storeStock.upsert({
+          where: { storeId_productId: { storeId, productId: c.productId } },
+          create: { storeId, productId: c.productId, quantity: next, lowStockThreshold: threshold, updatedBy: user },
+          update: { quantity: next, lowStockThreshold: threshold, updatedBy: user },
         });
+
+        if (next !== current || !existing) {
+          movements.push({ storeId, productId: c.productId, delta: next - current, newQty: next, reason, note, user });
+        }
       }
-      updated++;
-    }
-    return updated;
-  });
+
+      if (movements.length > 0) {
+        await tx.stockMovement.createMany({ data: movements });
+      }
+      return changes.length;
+    },
+    { maxWait: 10000, timeout: 30000 }
+  );
 }

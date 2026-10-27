@@ -3,7 +3,7 @@ import { decodePosCode, findStoreByPosCode, getStoreStock } from '@/lib/stock';
 
 export const dynamic = 'force-dynamic';
 
-/** Customer-facing stock view: availability badges only, never exact quantities. */
+/** Customer-facing stock view: each product's available quantity and a status. */
 export async function GET(request: NextRequest, { params }: { params: { posCode: string } }) {
   try {
     const store = await findStoreByPosCode(decodePosCode(params.posCode));
@@ -25,6 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { posCode:
         name: r.name,
         category: r.category,
         variant: r.variant,
+        quantity: r.quantity,
         status: r.status,
         updatedAt: r.updatedAt,
       })),

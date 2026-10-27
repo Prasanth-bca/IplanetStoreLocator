@@ -266,13 +266,14 @@ export const StoreCard: React.FC<StoreCardProps> = ({ result, isSelected, onSele
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              setShowStock(true);
+              setShowStock(v => !v);
             }}
+            aria-expanded={showStock}
             className="btn-maps"
             title="View stock availability"
           >
             <Package className="w-4 h-4" />
-            <span className="text-[13px]">View stock</span>
+            <span className="text-[13px]">{showStock ? 'Hide stock' : 'View stock'}</span>
           </button>
         )}
 
@@ -312,8 +313,8 @@ export const StoreCard: React.FC<StoreCardProps> = ({ result, isSelected, onSele
         )}
       </div>
       {showStock && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <StockPanel posCode={store.posCode} storeName={store.storeName} phone={store.phone} onClose={() => setShowStock(false)} />
+        <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+          <StockPanel posCode={store.posCode} onClose={() => setShowStock(false)} />
         </div>
       )}
     </article>
