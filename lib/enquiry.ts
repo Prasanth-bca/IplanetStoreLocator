@@ -4,6 +4,11 @@
  */
 
 export const WHATSAPP_WEB_URL = 'https://web.whatsapp.com/';
+/** Opens the WhatsApp desktop app (Windows / Mac) through its registered protocol. */
+export const WHATSAPP_DESKTOP_URL = 'whatsapp://';
+
+export type WhatsAppTarget = 'web' | 'desktop';
+export const WHATSAPP_TARGET_KEY = 'enquiryWhatsAppTarget';
 
 export interface EnquiryInput {
   customerName: string;

@@ -8,7 +8,10 @@ import {
   EnquiryField,
   pasteShortcutLabel,
   validateEnquiry,
+  WHATSAPP_DESKTOP_URL,
+  WHATSAPP_TARGET_KEY,
   WHATSAPP_WEB_URL,
+  WhatsAppTarget,
 } from '@/lib/enquiry';
 import { copyFailureMessage, copyToClipboard, CopyResult } from '@/lib/clipboard';
 
@@ -46,6 +49,7 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ storeName, posCode, pr
   const [message, setMessage] = useState('');
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [shortcut, setShortcut] = useState('Ctrl + V');
+  const [target, setTarget] = useState<WhatsAppTarget>('web');
 
   const formRef = useRef<HTMLFormElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -56,7 +60,23 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ storeName, posCode, pr
   // Device-specific paste hint; computed after mount so server and client markup match.
   useEffect(() => {
     setShortcut(pasteShortcutLabel(navigator.userAgent, navigator.platform, navigator.maxTouchPoints));
+    // Remember which WhatsApp the CEC uses; storage can be unavailable, so this is best-effort.
+    try {
+      const saved = window.localStorage.getItem(WHATSAPP_TARGET_KEY);
+      if (saved === 'web' || saved === 'desktop') setTarget(saved);
+    } catch {
+      /* storage unavailable */
+    }
   }, []);
+
+  const chooseTarget = (t: WhatsAppTarget) => {
+    setTarget(t);
+    try {
+      window.localStorage.setItem(WHATSAPP_TARGET_KEY, t);
+    } catch {
+      /* storage unavailable */
+    }
+  };
 
   // A new product was picked from the list: apply it and bring the form into view.
   useEffect(() => {
@@ -99,15 +119,25 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ storeName, posCode, pr
     setOutcome(null);
 
     const copying = copyToClipboard(text);
-    const win = window.open(WHATSAPP_WEB_URL, '_blank');
-    if (win) {
-      try {
-        win.opener = null; // the new tab doesn't need a handle back to this page
-      } catch {
-        /* ignore */
+    if (target === 'desktop') {
+      // A protocol link clicked inside this handler, so it still counts as the user's click.
+      // Nothing can confirm the app opened; the copy result and the note below cover that case.
+      const link = document.createElement('a');
+      link.href = WHATSAPP_DESKTOP_URL;
+      link.rel = 'noopener';
+      link.click();
+      setPopupBlocked(false);
+    } else {
+      const win = window.open(WHATSAPP_WEB_URL, '_blank');
+      if (win) {
+        try {
+          win.opener = null; // the new tab doesn't need a handle back to this page
+        } catch {
+          /* ignore */
+        }
       }
+      setPopupBlocked(!win);
     }
-    setPopupBlocked(!win);
 
     // Only report success once the browser confirms the copy.
     copying.then(result => setOutcome(result.ok ? { kind: 'copied' } : { kind: 'failed', reason: result.reason }));
@@ -223,6 +253,30 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ storeName, posCode, pr
       </div>
 
       <div className="px-4 pb-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Open WhatsApp in">
+          <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 mr-1">Open in</span>
+          {(
+            [
+              { key: 'web', label: 'WhatsApp Web' },
+              { key: 'desktop', label: 'WhatsApp app (Windows / Mac)' },
+            ] as const
+          ).map(opt => (
+            <button
+              key={opt.key}
+              type="button"
+              role="radio"
+              aria-checked={target === opt.key}
+              onClick={() => chooseTarget(opt.key)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                target === opt.key
+                  ? 'bg-emerald-600 border-emerald-600 text-white'
+                  : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-300 hover:border-emerald-400'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
         <button
           type="submit"
           className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition"
@@ -234,7 +288,14 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ storeName, posCode, pr
         {outcome?.kind === 'copied' && (
           <div role="status" className="flex items-start gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 px-3 py-2.5 text-sm text-emerald-800 dark:text-emerald-200">
             <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            <p>Message copied! Open WhatsApp, select the required group, press {shortcut}, and send.</p>
+            <div className="space-y-1">
+              <p>Message copied! Open WhatsApp, select the required group, press {shortcut}, and send.</p>
+              {target === 'desktop' && (
+                <p className="text-xs text-emerald-700/90 dark:text-emerald-300/90">
+                  Nothing opened? Install WhatsApp for Windows, or choose WhatsApp Web above.
+                </p>
+              )}
+            </div>
           </div>
         )}
 
