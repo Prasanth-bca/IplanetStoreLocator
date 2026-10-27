@@ -1,30 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/auth';
+import { getProductsWithTotals } from '@/lib/productStats';
 
 export const dynamic = 'force-dynamic';
 
 /** All products (active and disabled) with stock totals across every store. */
-export async function GET() {
-  const [products, totals, stocked] = await Promise.all([
-    prisma.product.findMany({ orderBy: [{ category: 'asc' }, { name: 'asc' }, { variant: 'asc' }] }),
-    prisma.storeStock.groupBy({ by: ['productId'], _sum: { quantity: true } }),
-    prisma.storeStock.groupBy({ by: ['productId'], where: { quantity: { gt: 0 } }, _count: { _all: true } }),
-  ]);
+export async function GET(request: NextRequest) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
 
-  const unitsBy = new Map(totals.map(t => [t.productId, t._sum.quantity ?? 0]));
-  const storesBy = new Map(stocked.map(t => [t.productId, t._count._all]));
-
-  return NextResponse.json({
-    total: products.length,
-    products: products.map(p => ({
-      ...p,
-      totalUnits: unitsBy.get(p.id) ?? 0,
-      storesInStock: storesBy.get(p.id) ?? 0,
-    })),
-  });
+  const products = await getProductsWithTotals(false);
+  return NextResponse.json({ total: products.length, products });
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await request.json();
     const sku = String(body.sku || '').trim();

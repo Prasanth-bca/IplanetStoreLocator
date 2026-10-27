@@ -101,3 +101,52 @@ model StockMovement {
   @@index([storeId, createdAt])
   @@map("stock_movements")
 }
+
+/// A customer enquiry passed to a store through the "Pass to Store" form.
+/// Store name and POS code are kept as a snapshot so history survives store edits or deletion.
+model Lead {
+  id             String   @id @default(cuid())
+  /// Generated in the browser per form content, so a double-click can't record the same lead twice.
+  clientId       String   @unique @map("client_id")
+  customerName   String   @map("customer_name")
+  /// 10 digits, no country code.
+  customerMobile String   @map("customer_mobile")
+  storeName      String   @map("store_name")
+  posCode        String   @map("pos_code")
+  product        String
+  remarks        String?
+  /// Which WhatsApp the CEC opened: "web" or "desktop".
+  channel        String   @default("web")
+  createdAt      DateTime @default(now()) @map("created_at")
+  /// Who passed the lead. Null for leads recorded before individual logins existed.
+  userId         String?  @map("user_id")
+  /// The person's name at the time, kept so history still reads correctly if they are renamed.
+  userName       String?  @map("user_name")
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([posCode])
+  @@index([userId, createdAt])
+  @@map("leads")
+}
+
+/// A person who can sign in. Role is "ADMIN" (everything) or "SALES" (store finder, stock and
+/// product viewing, and their own lead history).
+model User {
+  id           String    @id @default(cuid())
+  /// Lowercase sign-in name.
+  username     String    @unique
+  name         String
+  role         String    @default("SALES")
+  passwordHash String    @map("password_hash")
+  active       Boolean   @default(true)
+  /// Bumped on role, status or password changes so existing sessions stop working.
+  tokenVersion Int       @default(0) @map("token_version")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  leads Lead[]
+
+  @@map("users")
+}

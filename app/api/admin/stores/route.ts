@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRetailStores, saveRetailStores, getCareCentres } from '@/lib/storeRepo';
 import { Store } from '@/types/store';
+import { requireRole } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   const { searchParams } = new URL(request.url);
   const category = searchParams.get('category') || 'Retail';
   const stores = category === 'Care' ? await getCareCentres() : await getRetailStores();
@@ -10,6 +14,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await request.json();
     const stores = await getRetailStores();

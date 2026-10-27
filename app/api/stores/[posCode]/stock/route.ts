@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { decodePosCode, findStoreByPosCode, getStoreStock } from '@/lib/stock';
+import { requireUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 /** Customer-facing stock view: each product's available quantity and a status. */
 export async function GET(request: NextRequest, { params }: { params: { posCode: string } }) {
+  const auth = await requireUser(request);
+  if (!auth.ok) return auth.response;
+
   try {
     const store = await findStoreByPosCode(decodePosCode(params.posCode));
     if (!store) {

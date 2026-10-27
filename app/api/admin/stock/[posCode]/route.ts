@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/auth';
 import {
   applyStockChanges,
   decodePosCode,
@@ -12,7 +13,10 @@ import {
 export const dynamic = 'force-dynamic';
 
 /** Admin view: includes exact quantities and thresholds. */
-export async function GET(_request: NextRequest, { params }: { params: { posCode: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { posCode: string } }) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const store = await findStoreByPosCode(decodePosCode(params.posCode));
     if (!store) {
@@ -31,6 +35,9 @@ export async function GET(_request: NextRequest, { params }: { params: { posCode
  * All updates apply in one transaction, each recorded in the movement log.
  */
 export async function PATCH(request: NextRequest, { params }: { params: { posCode: string } }) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const store = await findStoreByPosCode(decodePosCode(params.posCode));
     if (!store) {

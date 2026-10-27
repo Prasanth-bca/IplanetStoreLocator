@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateStore, deleteStore } from '@/lib/storeRepo';
+import { requireRole } from '@/lib/auth';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = params;
     const body = await request.json();
@@ -22,6 +26,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = params;
     const success = await deleteStore(id);

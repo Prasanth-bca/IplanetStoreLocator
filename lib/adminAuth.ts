@@ -1,5 +1,17 @@
+import { isRole, Role } from '@/lib/access';
+
 const SESSION_COOKIE = 'admin_session';
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+// Shorter than before (was 7 days): a deactivated or demoted person is locked out within this
+// window even on pages, which the middleware can only check against the signed token.
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+export interface SessionPayload {
+  uid: string;
+  role: Role;
+  /** Matches User.tokenVersion; a mismatch means the session was revoked. */
+  tv: number;
+  exp: number;
+}
 
 function base64url(bytes: ArrayBuffer | Uint8Array): string {
   const buf = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
@@ -33,18 +45,19 @@ async function getKey(): Promise<CryptoKey> {
   );
 }
 
-export async function createSessionToken(): Promise<string> {
-  const payload = JSON.stringify({ exp: Date.now() + SESSION_TTL_MS });
+export async function createSessionToken(claims: Omit<SessionPayload, 'exp'>): Promise<string> {
+  const payload = JSON.stringify({ ...claims, exp: Date.now() + SESSION_TTL_MS });
   const payloadB64 = base64url(new TextEncoder().encode(payload));
   const key = await getKey();
   const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payloadB64));
   return `${payloadB64}.${base64url(signature)}`;
 }
 
-export async function verifySessionToken(token: string | undefined | null): Promise<boolean> {
-  if (!token) return false;
+/** The signed claims if the token is genuine and unexpired, otherwise null. */
+export async function verifySessionToken(token: string | undefined | null): Promise<SessionPayload | null> {
+  if (!token) return null;
   const [payloadB64, sigB64] = token.split('.');
-  if (!payloadB64 || !sigB64) return false;
+  if (!payloadB64 || !sigB64) return null;
 
   try {
     const key = await getKey();
@@ -54,12 +67,15 @@ export async function verifySessionToken(token: string | undefined | null): Prom
       base64urlToBytes(sigB64) as BufferSource,
       new TextEncoder().encode(payloadB64)
     );
-    if (!valid) return false;
+    if (!valid) return null;
 
-    const payload = JSON.parse(new TextDecoder().decode(base64urlToBytes(payloadB64)));
-    return typeof payload.exp === 'number' && payload.exp > Date.now();
+    const p = JSON.parse(new TextDecoder().decode(base64urlToBytes(payloadB64)));
+    // Tokens issued before roles existed have no uid/role and are rejected, which signs everyone out once.
+    if (typeof p.uid !== 'string' || !isRole(p.role) || typeof p.tv !== 'number' || typeof p.exp !== 'number') return null;
+    if (p.exp <= Date.now()) return null;
+    return { uid: p.uid, role: p.role, tv: p.tv, exp: p.exp };
   } catch {
-    return false;
+    return null;
   }
 }
 

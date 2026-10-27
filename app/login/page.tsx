@@ -3,6 +3,7 @@
 import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Loader2, AlertCircle } from 'lucide-react';
+import { resetCurrentUser } from '@/lib/useCurrentUser';
 
 export default function LoginPage() {
   return (
@@ -15,6 +16,7 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +30,7 @@ function LoginForm() {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ username, password })
       });
 
       if (!res.ok) {
@@ -38,7 +40,10 @@ function LoginForm() {
         return;
       }
 
-      const next = searchParams.get('next') || '/';
+      resetCurrentUser(); // so the next page asks who just signed in
+      // Only follow same-site paths, never a link to another website.
+      const requested = searchParams.get('next') || '/';
+      const next = requested.startsWith('/') && !requested.startsWith('//') ? requested : '/';
       router.push(next);
       router.refresh();
     } catch {
@@ -59,15 +64,30 @@ function LoginForm() {
             iPlanet Store Locator
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            Enter the password to continue.
+            Sign in to continue.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <input
-                type="password"
+                type="text"
                 autoFocus
                 required
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                placeholder="Username"
+                className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition"
+              />
+            </div>
+
+            <div>
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Password"
@@ -84,7 +104,7 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={isSubmitting || !password}
+              disabled={isSubmitting || !username.trim() || !password}
               className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold shadow-sm transition"
             >
               {isSubmitting ? (

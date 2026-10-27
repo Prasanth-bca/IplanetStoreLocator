@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { stockStatus } from '@/lib/stock';
+import { requireUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 /** Body: { sku: string, posCodes: string[] } -> availability of one product across the given stores. */
 export async function POST(request: NextRequest) {
+  const auth = await requireUser(request);
+  if (!auth.ok) return auth.response;
+
   try {
     const { sku, posCodes } = await request.json();
     if (!sku || !Array.isArray(posCodes) || posCodes.length === 0) {

@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRetailStores, saveRetailStores, getCareCentres, saveCareCentres } from '@/lib/storeRepo';
 import { Store, LocationType } from '@/types/store';
 import * as xlsx from 'xlsx';
+import { requireRole } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

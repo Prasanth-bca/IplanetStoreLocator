@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { decodePosCode, findStoreByPosCode } from '@/lib/stock';
+import { requireRole } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest, { params }: { params: { posCode: string } }) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const store = await findStoreByPosCode(decodePosCode(params.posCode));
     if (!store) {

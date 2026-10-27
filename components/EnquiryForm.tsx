@@ -50,12 +50,23 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ storeName, posCode, pr
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [shortcut, setShortcut] = useState('Ctrl + V');
   const [target, setTarget] = useState<WhatsAppTarget>('web');
+  const [leadStatus, setLeadStatus] = useState<'idle' | 'saving' | 'saved' | 'duplicate' | 'error'>('idle');
 
   const formRef = useRef<HTMLFormElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const mobileRef = useRef<HTMLInputElement>(null);
   const productRef = useRef<HTMLInputElement>(null);
   const manualRef = useRef<HTMLTextAreaElement>(null);
+  // Identifies this lead for history. It changes whenever the enquiry content changes, so
+  // clicking Send twice on the same details counts once, while a different enquiry counts anew.
+  const leadIdRef = useRef('');
+  useEffect(() => {
+    leadIdRef.current =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+    setLeadStatus('idle');
+  }, [customerName, customerMobile, product, remarks]);
 
   // Device-specific paste hint; computed after mount so server and client markup match.
   useEffect(() => {
@@ -141,6 +152,33 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ storeName, posCode, pr
 
     // Only report success once the browser confirms the copy.
     copying.then(result => setOutcome(result.ok ? { kind: 'copied' } : { kind: 'failed', reason: result.reason }));
+
+    // After the copy and the WhatsApp tab are underway, add the lead to history.
+    saveLead();
+  };
+
+  const saveLead = () => {
+    setLeadStatus('saving');
+    fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        clientId: leadIdRef.current,
+        customerName,
+        customerMobile,
+        posCode,
+        product,
+        remarks,
+        channel: target,
+      }),
+    })
+      .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        setLeadStatus(data.duplicate ? 'duplicate' : 'saved');
+      })
+      .catch(() => setLeadStatus('error'));
   };
 
   const copyAgain = () => {
@@ -321,6 +359,25 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ storeName, posCode, pr
               <Copy className="w-3.5 h-3.5" /> Try copying again
             </button>
           </div>
+        )}
+
+        {leadStatus === 'saved' && (
+          <p role="status" className="text-xs text-gray-500 dark:text-gray-400">
+            Lead recorded in history.
+          </p>
+        )}
+        {leadStatus === 'duplicate' && (
+          <p role="status" className="text-xs text-gray-500 dark:text-gray-400">
+            This lead is already in history, so it isn’t counted twice.
+          </p>
+        )}
+        {leadStatus === 'error' && (
+          <p role="alert" className="text-sm text-amber-800 dark:text-amber-200">
+            The message was prepared, but this lead couldn’t be saved to history.{' '}
+            <button type="button" onClick={saveLead} className="font-semibold underline">
+              Try saving again
+            </button>
+          </p>
         )}
 
         {popupBlocked && (

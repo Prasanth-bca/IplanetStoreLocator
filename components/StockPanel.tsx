@@ -18,7 +18,10 @@ interface StockItem {
 interface StockPanelProps {
   posCode: string;
   storeName: string;
-  onClose: () => void;
+  /** Omit when the panel is the main content of a page, so there's no close button. */
+  onClose?: () => void;
+  /** Let the list grow taller, for use as a full page. */
+  tall?: boolean;
 }
 
 const chip = (active: boolean) =>
@@ -36,7 +39,7 @@ const QTY_TONE: Record<Status, string> = {
 };
 
 /** Stock list shown inline inside a store card: one row per product with its available quantity. */
-export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onClose }) => {
+export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onClose, tall = false }) => {
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,9 +114,11 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
             <MessageCircle className="w-3.5 h-3.5" />
             <span>Pass to Store</span>
           </button>
-          <button onClick={onClose} aria-label="Hide stock" className="p-1.5 -mr-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500">
-            <X className="w-4 h-4" />
-          </button>
+          {onClose && (
+            <button onClick={onClose} aria-label="Hide stock" className="p-1.5 -mr-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500">
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -160,7 +165,7 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
       )}
 
       {/* List */}
-      <div className="px-4 py-3 max-h-[380px] overflow-y-auto">
+      <div className={`px-4 py-3 overflow-y-auto ${tall ? 'max-h-[68vh]' : 'max-h-[380px]'}`}>
         {loading && (
           <div className="space-y-3" aria-busy="true" aria-label="Loading stock">
             {Array.from({ length: 5 }).map((_, i) => (

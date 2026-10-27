@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchStores } from '@/lib/storeSearchEngine';
 import { StoreCategory } from '@/types/store';
+import { requireUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const auth = await requireUser(request);
+  if (!auth.ok) return auth.response;
+
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || '';

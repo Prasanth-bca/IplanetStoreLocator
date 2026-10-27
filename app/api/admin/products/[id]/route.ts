@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 /** Body: any of { sku, name, category, variant, active }. Disabling hides a product from customers and the stock screen. */
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const current = await prisma.product.findUnique({ where: { id: params.id } });
     if (!current) {
@@ -53,7 +57,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 /** Deleting cascades to stock rows, so it is refused once a product has stock history. Disable it instead. */
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const product = await prisma.product.findUnique({ where: { id: params.id } });
     if (!product) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as xlsx from 'xlsx';
 import { prisma } from '@/lib/prisma';
 import { applyStockChanges, StockChange } from '@/lib/stock';
+import { requireRole } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,9 @@ export const dynamic = 'force-dynamic';
  * Valid rows are applied; invalid rows are reported back, matching the store import behaviour.
  */
 export async function POST(request: NextRequest) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

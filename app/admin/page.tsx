@@ -20,7 +20,9 @@ import {
   MapPin,
   LogOut,
   Package,
-  Home
+  Home,
+  MessageCircle,
+  Users
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ViewToggle, useViewMode } from '@/components/ViewToggle';
@@ -291,6 +293,20 @@ export default function AdminPage() {
             >
               <Package className="w-3.5 h-3.5" />
               <span>Stock</span>
+            </Link>
+            <Link
+              href="/admin/users"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-semibold transition"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Users</span>
+            </Link>
+            <Link
+              href="/admin/leads"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-semibold transition"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>Leads</span>
             </Link>
             <Link
               href="/admin/products"

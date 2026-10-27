@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Settings, LogOut, Home } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { resetCurrentUser, useCurrentUser } from '@/lib/useCurrentUser';
 
 export const Navbar: React.FC = () => {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { user } = useCurrentUser();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -20,6 +22,7 @@ export const Navbar: React.FC = () => {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     await fetch('/api/logout', { method: 'POST' });
+    resetCurrentUser();
     router.push('/login');
     router.refresh();
   };
@@ -71,13 +74,15 @@ export const Navbar: React.FC = () => {
             <span className="hidden sm:inline">Home</span>
           </Link>
 
-          <Link
-            href="/admin"
-            className="inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-blue-200 transition-all duration-150"
-          >
-            <Settings className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Admin</span>
-          </Link>
+          {user?.role === 'ADMIN' && (
+            <Link
+              href="/admin"
+              className="inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-blue-200 transition-all duration-150"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Admin</span>
+            </Link>
+          )}
 
           <button
             onClick={handleLogout}
