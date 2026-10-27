@@ -71,3 +71,6 @@ Desktop.ini
 .agents/
 .claude/
 skills-lock.json
+
+# Stock import template served from /public
+!public/iPlanet_Stock_Import_Template.csv

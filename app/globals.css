@@ -100,6 +100,15 @@ body {
 }
 
 /* ========== UTILITY CLASSES ========== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease forwards;
+}
+
 .animate-fadeInUp {
   animation: fadeInUp 0.4s ease forwards;
 }
@@ -546,4 +555,11 @@ body {
 .dark .btn-maps:hover {
   background: #242430;
   border-color: rgba(255,255,255,0.2);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

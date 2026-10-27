@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { StockPanel } from '@/components/StockPanel';
 import { StoreSearchResult } from '@/types/store';
 import {
   MapPin,
@@ -15,6 +16,7 @@ import {
   Timer,
   Activity,
   MessageCircle,
+  Package,
 } from 'lucide-react';
 
 interface StoreCardProps {
@@ -79,6 +81,7 @@ function waUrl(phone: string | null, storeName: string): string {
 export const StoreCard: React.FC<StoreCardProps> = ({ result, isSelected, onSelect, index = 0 }) => {
   const { store, isPreferred, rank, distanceKm, travelTimeMinutes, trafficLevel, howToReach, directionsUrl } = result;
 
+  const [showStock, setShowStock] = useState(false);
   const openStatus = useMemo(() => isOpenNow(store.openingTime, store.closingTime), [store.openingTime, store.closingTime]);
   const whatsappUrl = waUrl(store.phone, store.storeName);
   const mapsOpenUrl = store.googleMapsUrl || directionsUrl;
@@ -257,6 +260,22 @@ export const StoreCard: React.FC<StoreCardProps> = ({ result, isSelected, onSele
           <span>Get Directions</span>
         </a>
 
+        {/* Stock availability (retail stores only) */}
+        {store.category === 'Retail' && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowStock(true);
+            }}
+            className="btn-maps"
+            title="View stock availability"
+          >
+            <Package className="w-4 h-4" />
+            <span className="text-[13px]">View stock</span>
+          </button>
+        )}
+
         {/* WhatsApp */}
         {whatsappUrl && (
           <a
@@ -292,6 +311,11 @@ export const StoreCard: React.FC<StoreCardProps> = ({ result, isSelected, onSele
           </a>
         )}
       </div>
+      {showStock && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <StockPanel posCode={store.posCode} storeName={store.storeName} phone={store.phone} onClose={() => setShowStock(false)} />
+        </div>
+      )}
     </article>
   );
 };

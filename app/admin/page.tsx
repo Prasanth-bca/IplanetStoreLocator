@@ -18,9 +18,11 @@ import {
   Wrench,
   Layers,
   MapPin,
-  LogOut
+  LogOut,
+  Package
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ViewToggle, useViewMode } from '@/components/ViewToggle';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -33,6 +35,7 @@ export default function AdminPage() {
     router.refresh();
   };
 
+  const [view, setView] = useViewMode('admin-stores-view');
   const [activeCategory, setActiveCategory] = useState<'Retail' | 'Care'>('Retail');
   const [stores, setStores] = useState<Store[]>([]);
   const [searchFilter, setSearchFilter] = useState('');
@@ -223,6 +226,26 @@ export default function AdminPage() {
     return matchesSearch && matchesStatus && matchesState && matchesCity;
   });
 
+  const statusSelect = (store: Store) => (
+    <select
+      value={store.status}
+      onChange={(e) => handleStatusChange(store.id, e.target.value as StoreStatus)}
+      aria-label={`Status for ${store.posCode}`}
+      className={`text-xs font-bold py-1.5 px-2 rounded-lg border outline-none ${
+        store.status === 'Active'
+          ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+          : store.status === 'TemporarilyClosed'
+          ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+          : 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-zinc-700'
+      }`}
+    >
+      <option value="Active">Active</option>
+      <option value="TemporarilyClosed">Temporarily Closed</option>
+      <option value="ComingSoon">Coming Soon</option>
+      <option value="Inactive">Inactive</option>
+    </select>
+  );
+
   return (
     <div className="min-h-screen bg-[#fbfbfd] dark:bg-[#0a0a0c] text-gray-900 dark:text-gray-100 transition-colors duration-200">
       {/* Admin Navbar */}
@@ -252,6 +275,20 @@ export default function AdminPage() {
               <span>Add New Store</span>
             </button>
 
+            <Link
+              href="/admin/stock"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-semibold transition"
+            >
+              <Package className="w-3.5 h-3.5" />
+              <span>Stock</span>
+            </Link>
+            <Link
+              href="/admin/products"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-semibold transition"
+            >
+              <Package className="w-3.5 h-3.5" />
+              <span>Products</span>
+            </Link>
             <button
               onClick={handleLogout}
               disabled={isLoggingOut}
@@ -462,117 +499,168 @@ export default function AdminPage() {
               )}
             </div>
 
-            <div className="text-xs font-bold text-gray-500 dark:text-gray-400">
-              Showing {filteredStores.length} of {stores.length} {activeCategory === 'Retail' ? 'stores' : 'centres'}
+            <div className="flex items-center gap-3">
+              <div className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                Showing {filteredStores.length} of {stores.length} {activeCategory === 'Retail' ? 'stores' : 'centres'}
+              </div>
+              <ViewToggle value={view} onChange={setView} />
             </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-gray-600 dark:text-gray-300">
-              <thead className="bg-gray-50/80 dark:bg-zinc-800/80 text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider border-b border-gray-200 dark:border-white/10">
-                <tr>
-                  <th className="py-3 px-4">POS Code</th>
-                  <th className="py-3 px-4">Location Type</th>
-                  <th className="py-3 px-4">Store Name</th>
-                  <th className="py-3 px-4">State / City</th>
-                  <th className="py-3 px-4">Area / Locality</th>
-                  <th className="py-3 px-4">PIN Code</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Coordinates</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={9} className="text-center py-10">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 dark:text-blue-400" />
-                    </td>
-                  </tr>
-                ) : filteredStores.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="text-center py-10 text-gray-400 dark:text-gray-500">
-                      No locations found matching your filter criteria.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredStores.map((store) => (
-                    <tr key={store.id} className="hover:bg-gray-50/60 dark:hover:bg-zinc-800/40 transition">
-                      <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-white">
+          {/* Stores: list (default) or cards */}
+          {isLoading ? (
+            <div className="py-14 flex justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600 dark:text-blue-400" />
+            </div>
+          ) : filteredStores.length === 0 ? (
+            <div className="py-14 text-center text-sm text-gray-400 dark:text-gray-500">
+              No locations found matching your filter criteria.
+            </div>
+          ) : view === 'list' ? (
+            <div>
+              <div className="hidden md:grid grid-cols-[88px_minmax(0,2.2fr)_minmax(0,1.5fr)_84px_150px_48px] gap-4 px-6 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 dark:text-gray-400 bg-gray-50/80 dark:bg-zinc-800/60 border-b border-gray-100 dark:border-white/10">
+                <span>POS code</span>
+                <span>Store</span>
+                <span>Location</span>
+                <span>PIN</span>
+                <span>Status</span>
+                <span className="text-right">Actions</span>
+              </div>
+              <ul className="divide-y divide-gray-100 dark:divide-white/5">
+                {filteredStores.map(store => {
+                  const isCare = store.locationType === 'iPlanet Care / Service Centre' || store.category === 'Care';
+                  const hasCoords = !!(store.latitude && store.longitude);
+                  return (
+                    <li
+                      key={store.id}
+                      className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[88px_minmax(0,2.2fr)_minmax(0,1.5fr)_84px_150px_48px] items-center gap-x-4 gap-y-2 px-6 py-3 hover:bg-gray-50/70 dark:hover:bg-white/[0.02] transition"
+                    >
+                      <span className="hidden md:inline-block font-mono text-xs font-extrabold text-gray-900 dark:text-white bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded-lg w-fit">
                         {store.posCode}
-                      </td>
+                      </span>
 
-                      {/* LOCATION TYPE COLUMN */}
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
-                            store.locationType === 'iPlanet Care / Service Centre' || store.category === 'Care'
-                              ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60'
-                              : 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60'
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center ${
+                            isCare
+                              ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400'
+                              : 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400'
                           }`}
+                          title={isCare ? 'iPlanet Care / Service Centre' : 'iPlanet Retail Store'}
                         >
-                          {store.locationType === 'iPlanet Care / Service Centre' || store.category === 'Care' ? (
-                            <>
-                              <Wrench className="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" />
-                              <span>iPlanet Care / Service</span>
-                            </>
-                          ) : (
-                            <>
-                              <StoreIcon className="w-3 h-3 text-blue-600 dark:text-blue-400 shrink-0" />
-                              <span>iPlanet Retail Store</span>
-                            </>
-                          )}
-                        </span>
-                      </td>
+                          {isCare ? <Wrench className="w-5 h-5" /> : <StoreIcon className="w-5 h-5" />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-bold text-gray-950 dark:text-white truncate" title={store.storeName}>
+                            {store.storeName}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            <span className="md:hidden font-mono font-semibold text-gray-700 dark:text-gray-300">{store.posCode} · </span>
+                            {isCare ? 'Care / Service' : 'Retail'}
+                            {!hasCoords && <span className="ml-2 font-semibold text-amber-600 dark:text-amber-400">No coordinates</span>}
+                          </div>
+                        </div>
+                      </div>
 
-                      <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-white max-w-[200px] truncate" title={store.storeName}>
-                        {store.storeName}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-semibold text-gray-800 dark:text-gray-200">{store.city}</div>
-                        <div className="text-[11px] text-gray-400 dark:text-gray-500">{store.state}</div>
-                      </td>
-                      <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400 max-w-[150px] truncate" title={store.area || store.locality || '—'}>
-                        {store.area || store.locality || '—'}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-gray-700 dark:text-gray-300">{store.pincode}</td>
-                      <td className="py-3.5 px-4">
-                        <select
-                          value={store.status}
-                          onChange={(e) => handleStatusChange(store.id, e.target.value as StoreStatus)}
-                          className={`text-xs font-bold py-1 px-2 rounded-lg border outline-none ${
-                            store.status === 'Active'
-                              ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                              : store.status === 'TemporarilyClosed'
-                              ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
-                              : 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-zinc-700'
-                          }`}
-                        >
-                          <option value="Active">Active</option>
-                          <option value="TemporarilyClosed">Temporarily Closed</option>
-                          <option value="ComingSoon">Coming Soon</option>
-                          <option value="Inactive">Inactive</option>
-                        </select>
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-[11px] text-gray-400 dark:text-gray-500">
-                        {store.latitude && store.longitude ? `${store.latitude}, ${store.longitude}` : 'Pending'}
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
+                      <div className="hidden md:block min-w-0">
+                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{store.city}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {[store.area || store.locality, store.state].filter(Boolean).join(' · ')}
+                        </div>
+                      </div>
+
+                      <span className="hidden md:block font-mono text-xs text-gray-600 dark:text-gray-300">{store.pincode}</span>
+
+                      <div className="hidden md:block">{statusSelect(store)}</div>
+
+                      <div className="flex items-center justify-end">
                         <button
                           onClick={() => handleDeleteStore(store.id, store.posCode)}
-                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition"
+                          aria-label={`Delete ${store.posCode}`}
+                          className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition"
                           title="Delete Location"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+
+                      <div className="md:hidden col-span-2 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="truncate">
+                          {store.city}, {store.state} · <span className="font-mono">{store.pincode}</span>
+                        </span>
+                        {statusSelect(store)}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : (
+            <div className="p-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredStores.map(store => {
+                const isCare = store.locationType === 'iPlanet Care / Service Centre' || store.category === 'Care';
+                const hasCoords = !!(store.latitude && store.longitude);
+                return (
+                  <article
+                    key={store.id}
+                    className="rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#16161a] overflow-hidden flex flex-col transition hover:shadow-lg"
+                  >
+                    <div className="p-5 flex items-start gap-4">
+                      <div
+                        className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center ${
+                          isCare
+                            ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400'
+                            : 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400'
+                        }`}
+                      >
+                        {isCare ? <Wrench className="w-7 h-7" /> : <StoreIcon className="w-7 h-7" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="text-[10px] uppercase tracking-widest font-bold text-gray-500">{isCare ? 'Care / Service' : 'Retail'}</div>
+                          <span className="font-mono text-xs font-extrabold text-gray-900 dark:text-white bg-gray-100 dark:bg-zinc-800 px-2 py-0.5 rounded-lg shrink-0">
+                            {store.posCode}
+                          </span>
+                        </div>
+                        <h3 className="text-base font-extrabold text-gray-950 dark:text-white leading-snug">{store.storeName}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 flex items-start gap-1.5 mt-1">
+                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                          <span>
+                            {[store.area || store.locality, store.city].filter(Boolean).join(', ')}, {store.state}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-px bg-gray-100 dark:bg-white/5 border-y border-gray-100 dark:border-white/5">
+                      <div className="bg-white dark:bg-[#16161a] px-5 py-3">
+                        <div className="text-sm font-extrabold font-mono text-gray-900 dark:text-white leading-none">{store.pincode}</div>
+                        <div className="text-[11px] font-semibold text-gray-500 mt-1">PIN code</div>
+                      </div>
+                      <div className="bg-white dark:bg-[#16161a] px-5 py-3">
+                        <div className={`text-sm font-extrabold leading-none ${hasCoords ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                          {hasCoords ? 'Mapped' : 'Pending'}
+                        </div>
+                        <div className="text-[11px] font-semibold text-gray-500 mt-1">Coordinates</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto px-5 py-3 flex items-center justify-between gap-3">
+                      {statusSelect(store)}
+                      <button
+                        onClick={() => handleDeleteStore(store.id, store.posCode)}
+                        aria-label={`Delete ${store.posCode}`}
+                        className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition"
+                        title="Delete Location"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
 
