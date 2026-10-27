@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Package, Search, X } from 'lucide-react';
+import { MessageCircle, Package, Search, X } from 'lucide-react';
+import { EnquiryForm } from '@/components/EnquiryForm';
 import { Status, StatusPill, timeAgo } from '@/components/stockUi';
 
 interface StockItem {
@@ -16,6 +17,7 @@ interface StockItem {
 
 interface StockPanelProps {
   posCode: string;
+  storeName: string;
   onClose: () => void;
 }
 
@@ -34,7 +36,7 @@ const QTY_TONE: Record<Status, string> = {
 };
 
 /** Stock list shown inline inside a store card: one row per product with its available quantity. */
-export const StockPanel: React.FC<StockPanelProps> = ({ posCode, onClose }) => {
+export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onClose }) => {
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +44,14 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, onClose }) => {
   const [category, setCategory] = useState('All');
   const [availableOnly, setAvailableOnly] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  // Enquiry form: null = closed, otherwise the product to prefill ('' = none picked yet).
+  const [enquiryProduct, setEnquiryProduct] = useState<string | null>(null);
+  const [enquiryKey, setEnquiryKey] = useState(0);
+
+  const openEnquiry = (product: string) => {
+    setEnquiryProduct(product);
+    setEnquiryKey(k => k + 1);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -87,15 +97,35 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, onClose }) => {
           <Package className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
           <h4 className="text-sm font-extrabold text-gray-950 dark:text-white">Stock available</h4>
           {!loading && !error && items.length > 0 && (
-            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <span className="hidden sm:inline text-xs text-gray-500 dark:text-gray-400 truncate">
               {availableCount} of {items.length} products
             </span>
           )}
         </div>
-        <button onClick={onClose} aria-label="Hide stock" className="p-1.5 -mr-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500">
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => openEnquiry('')}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span>Pass to Store</span>
+          </button>
+          <button onClick={onClose} aria-label="Hide stock" className="p-1.5 -mr-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
+
+      {enquiryProduct !== null && (
+        <EnquiryForm
+          storeName={storeName}
+          posCode={posCode}
+          product={enquiryProduct}
+          requestKey={enquiryKey}
+          onClose={() => setEnquiryProduct(null)}
+        />
+      )}
 
       {/* Filters */}
       {!loading && !error && items.length > 0 && (
@@ -192,6 +222,13 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, onClose }) => {
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-gray-900 dark:text-white sm:truncate">{it.name}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 sm:truncate">{it.variant ?? 'Standard'}</div>
+                        <button
+                          type="button"
+                          onClick={() => openEnquiry(it.variant ? `${it.name} – ${it.variant}` : it.name)}
+                          className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+                        >
+                          <MessageCircle className="w-3 h-3" /> Enquire
+                        </button>
                         {/* On phones the status sits under the name so the name keeps its width */}
                         <div className="sm:hidden mt-1.5">
                           <StatusPill status={it.status} label={it.status === 'unknown' ? 'Call store' : undefined} />

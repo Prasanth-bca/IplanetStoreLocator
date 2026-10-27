@@ -314,7 +314,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({ result, isSelected, onSele
       </div>
       {showStock && (
         <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-          <StockPanel posCode={store.posCode} onClose={() => setShowStock(false)} />
+          <StockPanel posCode={store.posCode} storeName={store.storeName} onClose={() => setShowStock(false)} />
         </div>
       )}
     </article>
