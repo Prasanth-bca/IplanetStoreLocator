@@ -154,6 +154,7 @@ async function upsertStores(stores: Store[]): Promise<void> {
       })
     )
   );
+  invalidateStoreCache();
 }
 
 export async function updateStore(id: string, updates: Partial<Store>): Promise<Store | null> {
@@ -165,6 +166,7 @@ export async function updateStore(id: string, updates: Partial<Store>): Promise<
     if (updates.status !== undefined) data.status = updates.status;
 
     const updated = await prisma.store.update({ where: { id: existing.id }, data });
+    invalidateStoreCache();
     return mapToStore(updated);
   } catch (err) {
     console.error('Error updating store:', err);
@@ -175,6 +177,7 @@ export async function updateStore(id: string, updates: Partial<Store>): Promise<
 export async function deleteStore(id: string): Promise<boolean> {
   try {
     const result = await prisma.store.deleteMany({ where: { OR: [{ id }, { posCode: id }] } });
+    invalidateStoreCache();
     return result.count > 0;
   } catch (err) {
     console.error('Error deleting store:', err);
@@ -182,6 +185,23 @@ export async function deleteStore(id: string): Promise<boolean> {
   }
 }
 
+// Search reads the whole store list on every query, so keep it in memory briefly.
+// Writes in this instance clear it immediately; other server instances pick up
+// changes within STORE_CACHE_TTL_MS. Admin screens read uncached.
+const STORE_CACHE_TTL_MS = 60 * 1000;
+const storeCache = new Map<StoreCategory, { at: number; stores: Promise<Store[]> }>();
+
+function invalidateStoreCache() {
+  storeCache.clear();
+}
+
 export async function getAllStores(category: StoreCategory = 'Retail'): Promise<Store[]> {
-  return category === 'Care' ? getCareCentres() : getRetailStores();
+  const hit = storeCache.get(category);
+  if (hit && Date.now() - hit.at < STORE_CACHE_TTL_MS) return hit.stores;
+
+  const stores = category === 'Care' ? getCareCentres() : getRetailStores();
+  storeCache.set(category, { at: Date.now(), stores });
+  // Don't keep a failed read around.
+  stores.catch(() => storeCache.delete(category));
+  return stores;
 }

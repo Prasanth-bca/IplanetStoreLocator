@@ -2,7 +2,7 @@ import { Store, StoreSearchResult, SearchResponse, StoreCategory } from '@/types
 import { getAllStores } from '@/lib/storeRepo';
 import { parseNaturalQuery } from '@/lib/searchParser';
 import { resolveLocation } from '@/lib/locationResolver';
-import { calculateRoute, calculateHaversineDistance } from '@/lib/routing';
+import { calculateRoutes, calculateHaversineDistance } from '@/lib/routing';
 
 export interface SearchOptions {
   query: string;
@@ -82,13 +82,15 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
   let userLat = latitude;
   let userLng = longitude;
   let resolvedLocName: string | undefined = undefined;
+  let isApproximate = false;
 
   if (userLat === undefined || userLng === undefined) {
-    const resolved = await resolveLocation(parsed.locationKeyword || query, effectivePincode);
+    const resolved = await resolveLocation(parsed.locationKeyword || query, effectivePincode, allDatabaseStores);
     if (resolved) {
       userLat = resolved.lat;
       userLng = resolved.lng;
       resolvedLocName = resolved.name;
+      isApproximate = !!resolved.approximate;
     }
   }
 
@@ -154,21 +156,22 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
   // 8. Return top 3 nearest stores within the 100 KM radius (or all available if < 3)
   const shortlisted = qualifyingStores.slice(0, requestedLimit);
 
-  // 9. Build final 14-point results with actual database fields & driving estimates
+  // 9. Travel times for every shortlisted store in one batched routing call
+  // (shortlisted stores always have coordinates, checked in step 6)
+  const routes = await calculateRoutes(
+    userLat,
+    userLng,
+    shortlisted.map(item => ({ lat: item.store.latitude as number, lng: item.store.longitude as number }))
+  );
+
+  // Build final results with actual database fields & driving estimates
   const finalResults: StoreSearchResult[] = [];
 
   for (let i = 0; i < shortlisted.length; i++) {
     const item = shortlisted[i];
     const store = item.store;
-
-    let travelMins: number | null = null;
-    let traffic: 'Light traffic' | 'Moderate traffic' | 'Heavy traffic' | null = null;
-
-    if (store.latitude && store.longitude) {
-      const route = await calculateRoute(userLat, userLng, store.latitude, store.longitude);
-      travelMins = route.travelTimeMinutes;
-      traffic = route.trafficLevel;
-    }
+    const travelMins = routes[i].travelTimeMinutes;
+    const traffic = routes[i].trafficLevel;
 
     const directionsUrl = store.latitude && store.longitude
       ? `https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`
@@ -197,6 +200,10 @@ export async function searchStores(options: SearchOptions): Promise<SearchRespon
     notice = `No ${category === 'Retail' ? 'iPlanet Retail Store' : 'iPlanet Care / Service Centre'} found within a 100 KM radius of ${locationLabel}.`;
   } else if (finalResults.length < requestedLimit) {
     notice = `Found ${finalResults.length} ${category === 'Retail' ? 'iPlanet Retail Store' : 'iPlanet Care / Service Centre'}${finalResults.length === 1 ? '' : 's'} within a 100 KM radius of ${locationLabel}.`;
+  }
+  if (isApproximate) {
+    const cityOnly = `We couldn't pinpoint "${query.trim()}", so these stores are ranked from the centre of ${locationLabel.replace(' (approximate)', '')}. Add an area or PIN code for exact distances.`;
+    notice = notice ? `${cityOnly} ${notice}` : cityOnly;
   }
 
   return {

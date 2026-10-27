@@ -28,78 +28,84 @@ export function calculateHaversineDistance(
   return Math.round(d * 10) / 10;
 }
 
-/**
- * Calls Google Distance Matrix / Routes API only for shortlisted candidates to minimize API costs.
- * Falls back transparently to Haversine driving estimates if Google key is not present or limit reached.
- */
-export async function calculateRoute(
-  originLat: number,
-  originLng: number,
-  destLat: number,
-  destLng: number
-): Promise<RouteInfo> {
-  // Strategy 1: Try Ola Maps Distance Matrix API (FREE tier: 100k calls/month)
-  if (process.env.OLA_MAPS_API_KEY) {
-    try {
-      const { getOlaDistance } = await import('./olaMaps');
-      const olaResult = await getOlaDistance(originLat, originLng, destLat, destLng);
+type TrafficLevel = 'Light traffic' | 'Moderate traffic' | 'Heavy traffic' | null;
 
-      if (olaResult) {
-        return {
-          distanceKm: olaResult.distance_km,
-          travelTimeMinutes: olaResult.duration_minutes,
-          trafficLevel: null,
-          isLiveTraffic: false
-        };
-      }
-    } catch (err) {
-      console.warn('Ola Maps Distance Matrix API call failed:', err);
-    }
-  }
-
-  // Strategy 2: Try Google Distance Matrix / Routes API (fallback)
-  const routesKey = process.env.GOOGLE_ROUTES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
-  if (routesKey) {
-    try {
-      const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originLat},${originLng}&destinations=${destLat},${destLng}&mode=driving&departure_time=now&key=${routesKey}`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.status === 'OK' && data.rows && data.rows[0]?.elements && data.rows[0].elements[0]?.status === 'OK') {
-        const elem = data.rows[0].elements[0];
-        const distKm = Math.round((elem.distance.value / 1000) * 10) / 10;
-        const durationSec = elem.duration_in_traffic ? elem.duration_in_traffic.value : elem.duration.value;
-        const travelMinutes = Math.max(1, Math.round(durationSec / 60));
-
-        let traffic: 'Light traffic' | 'Moderate traffic' | 'Heavy traffic' | null = null;
-        if (elem.duration_in_traffic) {
-          const ratio = elem.duration_in_traffic.value / elem.duration.value;
-          if (ratio > 1.35) traffic = 'Heavy traffic';
-          else if (ratio > 1.1) traffic = 'Moderate traffic';
-          else traffic = 'Light traffic';
-        }
-
-        return {
-          distanceKm: distKm,
-          travelTimeMinutes: travelMinutes,
-          trafficLevel: traffic,
-          isLiveTraffic: !!elem.duration_in_traffic
-        };
-      }
-    } catch (err) {
-      console.warn('Google Routing API call failed, using internal calculation:', err);
-    }
-  }
-
-  // Strategy 3: Internal Fallback Estimation (City road factor ~1.25x Haversine, average speed 25-30 km/h)
+/** Road-distance estimate when no routing API answers: ~1.25x straight line at ~28 km/h city speed. */
+function estimateRoute(originLat: number, originLng: number, destLat: number, destLng: number): RouteInfo {
   const straightDist = calculateHaversineDistance(originLat, originLng, destLat, destLng);
   const roadDist = Math.round(straightDist * 1.25 * 10) / 10;
-  const minutes = Math.max(2, Math.round((roadDist / 28) * 60));
-
   return {
     distanceKm: roadDist,
-    travelTimeMinutes: minutes,
+    travelTimeMinutes: Math.max(2, Math.round((roadDist / 28) * 60)),
     trafficLevel: null,
-    isLiveTraffic: false
+    isLiveTraffic: false,
   };
+}
+
+async function googleRoutes(
+  originLat: number,
+  originLng: number,
+  destinations: { lat: number; lng: number }[],
+  timeoutMs: number
+): Promise<(RouteInfo | null)[] | null> {
+  const routesKey = process.env.GOOGLE_ROUTES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
+  if (!routesKey) return null;
+
+  try {
+    const dests = destinations.map(d => `${d.lat},${d.lng}`).join('|');
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originLat},${originLng}&destinations=${encodeURIComponent(dests)}&mode=driving&departure_time=now&key=${routesKey}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    const data = await res.json();
+    if (data.status !== 'OK' || !data.rows?.[0]?.elements) return null;
+
+    return data.rows[0].elements.map((elem: any) => {
+      if (elem?.status !== 'OK') return null;
+      const durationSec = elem.duration_in_traffic ? elem.duration_in_traffic.value : elem.duration.value;
+      let traffic: TrafficLevel = null;
+      if (elem.duration_in_traffic) {
+        const ratio = elem.duration_in_traffic.value / elem.duration.value;
+        traffic = ratio > 1.35 ? 'Heavy traffic' : ratio > 1.1 ? 'Moderate traffic' : 'Light traffic';
+      }
+      return {
+        distanceKm: Math.round((elem.distance.value / 1000) * 10) / 10,
+        travelTimeMinutes: Math.max(1, Math.round(durationSec / 60)),
+        trafficLevel: traffic,
+        isLiveTraffic: !!elem.duration_in_traffic,
+      };
+    });
+  } catch (err) {
+    console.warn('Google Routing API call failed, using internal estimate:', err);
+    return null;
+  }
+}
+
+/**
+ * Routes from one origin to every shortlisted store in a single batched call
+ * (Ola Maps first, then Google), never one request per store. Any destination
+ * a provider can't answer falls back to the internal estimate, so this always
+ * returns one RouteInfo per destination within roughly `timeoutMs`.
+ */
+export async function calculateRoutes(
+  originLat: number,
+  originLng: number,
+  destinations: { lat: number; lng: number }[],
+  timeoutMs = 3000
+): Promise<RouteInfo[]> {
+  if (destinations.length === 0) return [];
+
+  let provided: (RouteInfo | null)[] | null = null;
+
+  const { getOlaDistances } = await import('./olaMaps');
+  const ola = await getOlaDistances(originLat, originLng, destinations, timeoutMs);
+  if (ola) {
+    provided = ola.map(r =>
+      r ? { distanceKm: r.distance_km, travelTimeMinutes: r.duration_minutes, trafficLevel: null, isLiveTraffic: false } : null
+    );
+  }
+
+  if (!provided) {
+    provided = await googleRoutes(originLat, originLng, destinations, timeoutMs);
+  }
+
+  return destinations.map((d, i) => provided?.[i] ?? estimateRoute(originLat, originLng, d.lat, d.lng));
 }
