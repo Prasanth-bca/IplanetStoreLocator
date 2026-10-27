@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link';
 import {
   ArrowLeft,
+  Home,
   CheckCircle,
   AlertTriangle,
   ChevronDown,
@@ -398,6 +399,14 @@ export default function StockAdminPage() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              aria-label="Home"
+              title="Home"
+              className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:text-blue-600"
+            >
+              <Home className="w-4 h-4" />
+            </Link>
             <Link
               href="/admin/products"
               className="px-3 py-2 rounded-xl text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60"

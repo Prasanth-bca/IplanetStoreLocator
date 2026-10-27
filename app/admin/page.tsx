@@ -19,7 +19,8 @@ import {
   Layers,
   MapPin,
   LogOut,
-  Package
+  Package,
+  Home
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ViewToggle, useViewMode } from '@/components/ViewToggle';
@@ -254,10 +255,19 @@ export default function AdminPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/"
+              aria-label="Home"
+              title="Home"
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 rounded-lg transition"
             >
+              <Home className="w-3.5 h-3.5" />
+              <span>Home</span>
+            </Link>
+            <Link
+              href="/locator"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 rounded-lg transition"
+            >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Customer Locator</span>
+              <span>Store Finder</span>
             </Link>
             <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               iPlanet Master Admin Portal

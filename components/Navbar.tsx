@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, Settings, MapPin, LogOut } from 'lucide-react';
+import { Settings, LogOut, Home } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export const Navbar: React.FC = () => {
@@ -34,7 +34,7 @@ export const Navbar: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand */}
-        <Link href="/" className="flex items-center gap-3 group shrink-0">
+        <Link href="/locator" className="flex items-center gap-3 group shrink-0">
           {/* Apple-style logo mark */}
           <div className="relative">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 dark:from-white dark:to-zinc-300 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all group-hover:scale-105">
@@ -61,26 +61,19 @@ export const Navbar: React.FC = () => {
           </div>
         </Link>
 
-        {/* Center: Tagline (desktop only) */}
-        <div className="hidden lg:flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
-          <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-          <span>Official Apple Authorised Reseller · Store Finder</span>
-        </div>
-
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/60 font-semibold">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Database Verified</span>
-            <span className="inline md:hidden">Verified</span>
-          </div>
-
-          {/* Black & White Theme Toggle */}
-          <ThemeToggle />
+        {/* Right: links, one aligned group */}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-blue-200 transition-all duration-150"
+          >
+            <Home className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Home</span>
+          </Link>
 
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-blue-200 transition-all duration-150"
+            className="inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-blue-200 transition-all duration-150"
           >
             <Settings className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Admin</span>
@@ -89,11 +82,13 @@ export const Navbar: React.FC = () => {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-red-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-red-200 transition-all duration-150 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-red-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-red-200 transition-all duration-150 disabled:opacity-50"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Logout</span>
           </button>
+
+          <ThemeToggle />
         </div>
       </div>
     </header>
