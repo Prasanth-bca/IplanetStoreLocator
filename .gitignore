@@ -74,3 +74,8 @@ skills-lock.json
 
 # Stock import template served from /public
 !public/iPlanet_Stock_Import_Template.csv
+
+!public/iPlanet_Real_Stock_ERP_Template.xlsx
+!public/iPlanet_Real_Stock_ERP_Template.csv
+!iPlanet_Real_Stock_ERP_Template.xlsx
+!iPlanet_Real_Stock_ERP_Template.csv

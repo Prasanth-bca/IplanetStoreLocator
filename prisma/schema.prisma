@@ -55,6 +55,8 @@ model Product {
   sku       String   @unique
   name      String
   category  String
+  segment   String?
+  class     String?
   variant   String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
@@ -64,6 +66,8 @@ model Product {
   movements StockMovement[]
 
   @@index([category])
+  @@index([segment])
+  @@index([class])
   @@map("products")
 }
 

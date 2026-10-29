@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import {
+import { Eye, Pencil, Check,
   ArrowLeft,
   Home,
   CheckCircle,
@@ -28,9 +28,11 @@ import { StorePicker } from '@/components/StorePicker';
 interface Row {
   productId: string;
   sku: string;
-  name: string;
-  category: string;
-  variant: string | null;
+  name: string; // SubClass
+  category: string; // Product (LOB)
+  segment?: string | null;
+  class?: string | null;
+  variant: string | null; // Color
   quantity: number | null;
   lowStockThreshold: number;
   status: Status;
@@ -81,7 +83,12 @@ export default function StockAdminPage() {
   const [importResult, setImportResult] = useState<any | null>(null);
   const [importing, setImporting] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [dryRunMode, setDryRunMode] = useState(false);
+  const [lastUploadedFile, setLastUploadedFile] = useState<File | null>(null);
   const [view, setView] = useViewMode('admin-stock-view');
+  const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [inStockOnly, setInStockOnly] = useState(false);
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
@@ -145,6 +152,7 @@ export default function StockAdminPage() {
     setQuery('');
     setCategory('All');
     setStatusFilter('all');
+                      setInStockOnly(false);
     loadStock(s.posCode);
   };
 
@@ -188,16 +196,22 @@ export default function StockAdminPage() {
     return () => document.removeEventListener('keydown', onKey);
   }, [save]);
 
-  const handleImport = async (file: File) => {
+  const handleImport = async (file: File, forceLive = false) => {
     setImporting(true);
     setImportResult(null);
+    setLastUploadedFile(file);
     try {
       const fd = new FormData();
       fd.append('file', file);
+      if (dryRunMode && !forceLive) {
+        fd.append('dryRun', 'true');
+      }
       const res = await fetch('/api/admin/stock/import', { method: 'POST', body: fd });
       const data = await res.json();
       setImportResult(res.ok ? data : { error: data.error || 'Import failed' });
-      if (res.ok && store) await loadStock(store.posCode);
+      if (res.ok && (!dryRunMode || forceLive) && store) {
+        await loadStock(store.posCode);
+      }
     } catch {
       setImportResult({ error: 'Import failed' });
     } finally {
@@ -227,13 +241,14 @@ export default function StockAdminPage() {
     const q = query.trim().toLowerCase();
     const map = new Map<string, typeof withLive>();
     for (const x of withLive) {
+      if (inStockOnly && (x.qty === null || x.qty === undefined || x.qty <= 0)) continue;
       if (category !== 'All' && x.r.category !== category) continue;
       if (statusFilter !== 'all' && x.status !== statusFilter) continue;
-      if (q && !`${x.r.name} ${x.r.variant ?? ''} ${x.r.sku}`.toLowerCase().includes(q)) continue;
+      if (q && !`${x.r.name} ${x.r.variant ?? ''} ${x.r.sku} ${x.r.segment ?? ''} ${x.r.class ?? ''}`.toLowerCase().includes(q)) continue;
       map.set(x.r.category, [...(map.get(x.r.category) ?? []), x]);
     }
     return Array.from(map.entries());
-  }, [withLive, query, category, statusFilter]);
+  }, [withLive, query, category, statusFilter, inStockOnly]);
 
   const focusNext = (id: string, kind: 'card' | 'list') => {
     const ids = grouped.flatMap(([, l]) => l.map(x => x.r.productId));
@@ -404,24 +419,80 @@ export default function StockAdminPage() {
               </div>
 
               {tab === 'stock' && (
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                  {/* Mode Selector (View / Edit) */}
+                  <div className="inline-flex p-1 rounded-xl bg-gray-200/70 dark:bg-zinc-800 shrink-0">
+                    <button
+                      onClick={() => { setMode('view'); setEditingId(null); }}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition inline-flex items-center gap-1.5 ${
+                        mode === 'view' ? 'bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <Eye className="w-3.5 h-3.5" /> View
+                    </button>
+                    <button
+                      onClick={() => setMode('edit')}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition inline-flex items-center gap-1.5 ${
+                        mode === 'edit' ? 'bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Edit
+                    </button>
+                  </div>
+
+                  {/* Prominent In Stock Only Button in toolbar */}
+                  <button
+                    onClick={() => setInStockOnly(prev => !prev)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition inline-flex items-center gap-2 shrink-0 ${
+                      inStockOnly
+                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-500/25 ring-2 ring-emerald-500/30'
+                        : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:border-emerald-500 hover:text-emerald-600'
+                    }`}
+                    title="Toggle to show only items currently in stock"
+                    aria-pressed={inStockOnly}
+                  >
+                    <span className={`w-2.5 h-2.5 rounded-full ${inStockOnly ? 'bg-white animate-pulse' : 'bg-emerald-500'}`} />
+                    <span>In Stock Only</span>
+                    {inStockOnly ? (
+                      <Check className="w-3.5 h-3.5 ml-0.5" />
+                    ) : (
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 font-mono">
+                        {counts.in_stock}
+                      </span>
+                    )}
+                  </button>
+
                   <ViewToggle value={view} onChange={setView} />
-                <div className="relative flex-1 sm:w-64 sm:flex-none">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    value={query}
-                    onChange={e => setQuery(e.target.value)}
-                    placeholder="Filter products"
-                    aria-label="Filter products"
-                    className={`${input} w-full pl-9 pr-3 py-2`}
-                  />
+
+                  <div className="relative flex-1 sm:w-52 sm:flex-none">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      value={query}
+                      onChange={e => setQuery(e.target.value)}
+                      placeholder="Filter products"
+                      aria-label="Filter products"
+                      className={`${input} w-full pl-9 pr-3 py-2`}
+                    />
                   </div>
                 </div>
               )}
             </div>
 
-            {tab === 'stock' && categories.length > 2 && (
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+            {tab === 'stock' && (
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
+                {/* Secondary Pill Filter in Categories Row */}
+                <button
+                  onClick={() => setInStockOnly(prev => !prev)}
+                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold border transition inline-flex items-center gap-1.5 ${
+                    inStockOnly
+                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                      : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 hover:border-emerald-400'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${inStockOnly ? 'bg-white' : 'bg-emerald-500'}`} />
+                  In Stock Only {counts.in_stock > 0 ? `(${counts.in_stock})` : ''}
+                </button>
+
                 {categories.map(c => (
                   <button key={c} onClick={() => setCategory(c)} className={chip(category === c)}>
                     {c}
@@ -456,96 +527,220 @@ export default function StockAdminPage() {
               </div>
             )}
 
-            {!loading &&
-              tab === 'stock' &&
-              grouped.map(([cat, list]) => (
-                <div key={cat}>
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-2 px-1">
-                    {cat} <span className="font-medium text-gray-400">· {list.length}</span>
-                  </h3>
+            {!loading && tab === 'stock' && (
+              <>
+                {view === 'list' ? (
+                  <div className="overflow-x-auto rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#16161a] shadow-sm">
+                    <table className="w-full text-left text-sm border-collapse min-w-[960px]">
+                      <thead className="bg-gray-50/90 dark:bg-zinc-900/80 border-b border-gray-200/80 dark:border-white/10 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                        <tr>
+                          <th className="py-3 px-4">Store</th>
+                          <th className="py-3 px-4">Product</th>
+                          <th className="py-3 px-4">Segment</th>
+                          <th className="py-3 px-4">Class</th>
+                          <th className="py-3 px-4 min-w-[200px]">SubClass (Variations)</th>
+                          <th className="py-3 px-4">Color</th>
+                          <th className="py-3 px-4">SerialNumber</th>
+                          <th className="py-3 px-4">Stock</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                        {grouped.flatMap(([, list]) => list).map(({ r, status }) => {
+                          const e = edits[r.productId];
+                          const qtyStr = e?.qty ?? (r.quantity === null ? '' : String(r.quantity));
+                          const thrStr = e?.thr ?? String(r.lowStockThreshold);
+                          const changed = dirtyIds.has(r.productId);
+                          const isEditing = mode === 'edit' || editingId === r.productId;
 
-                  {view === 'list' ? (
-                    <ul className="bg-white dark:bg-[#16161a] rounded-2xl border border-gray-200/80 dark:border-white/10 divide-y divide-gray-100 dark:divide-white/5 overflow-hidden">
-                      {list.map(({ r, status }) => {
-                        const e = edits[r.productId];
-                        const qtyStr = e?.qty ?? (r.quantity === null ? '' : String(r.quantity));
-                        const thrStr = e?.thr ?? String(r.lowStockThreshold);
-                        const changed = dirtyIds.has(r.productId);
-                        return (
-                          <li
-                            key={r.productId}
-                            className={`px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 ${changed ? 'bg-blue-50/70 dark:bg-blue-950/20' : ''}`}
-                          >
-                            <CategoryIcon category={r.category} className="w-10 h-10 shrink-0" />
-                            <div className="min-w-0 flex-1 basis-44">
-                              <div className="text-sm font-bold text-gray-950 dark:text-white truncate">{r.name}</div>
-                              <div className="text-xs text-gray-500 truncate">
-                                {r.variant ?? 'Standard'} · <span className="font-mono text-gray-400">{r.sku}</span>
-                              </div>
-                            </div>
-                            <div className="hidden lg:block w-36 text-[11px] text-gray-400">
-                              {changed && r.quantity !== null && e?.qty !== undefined ? (
-                                <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                                  was {r.quantity} → {qtyStr || '–'}
+                          return (
+                            <tr
+                              key={r.productId}
+                              className={`transition hover:bg-gray-50/60 dark:hover:bg-zinc-800/30 ${
+                                changed ? 'bg-blue-50/60 dark:bg-blue-950/20' : ''
+                              }`}
+                            >
+                              {/* 1. Store */}
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <span className="font-mono text-xs font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">
+                                  {store?.posCode || '—'}
                                 </span>
-                              ) : (
-                                timeAgo(r.updatedAt)
-                              )}
-                            </div>
-                            <div className="w-28 flex justify-start sm:justify-end">
-                              <StatusPill status={status} label={status === 'unknown' ? 'Not set' : undefined} />
-                            </div>
-                            {stepper(r, qtyStr, false)}
-                            {lowAtInput(r, thrStr, true)}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ) : (
-                    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      {list.map(({ r, status }) => {
-                        const e = edits[r.productId];
-                        const qtyStr = e?.qty ?? (r.quantity === null ? '' : String(r.quantity));
-                        const thrStr = e?.thr ?? String(r.lowStockThreshold);
-                        const changed = dirtyIds.has(r.productId);
-                        return (
-                          <li
-                            key={r.productId}
-                            className={`rounded-3xl border bg-white dark:bg-[#16161a] overflow-hidden flex flex-col transition ${
-                              changed ? 'border-blue-400 ring-2 ring-blue-500/15' : 'border-gray-200/80 dark:border-white/10'
-                            }`}
-                          >
-                            <div className="p-4 flex items-start gap-3">
-                              <CategoryIcon category={r.category} className="w-12 h-12 shrink-0" />
-                              <div className="min-w-0 flex-1">
-                                <div className="text-sm font-extrabold text-gray-950 dark:text-white leading-snug">{r.name}</div>
-                                <div className="text-xs text-gray-500 truncate">{r.variant ?? 'Standard'}</div>
-                                <div className="font-mono text-[10px] text-gray-400">{r.sku}</div>
-                              </div>
-                              <StatusPill status={status} label={status === 'unknown' ? 'Not set' : undefined} />
-                            </div>
+                              </td>
 
-                            <div className="px-4 pb-4 flex items-center justify-center">{stepper(r, qtyStr, true)}</div>
+                              {/* 2. Product (LOB) */}
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300">
+                                  <CategoryIcon category={r.category} className="w-3.5 h-3.5" />
+                                  {r.category}
+                                </span>
+                              </td>
 
-                            <div className="mt-auto px-4 py-2.5 border-t border-gray-100 dark:border-white/5 flex items-center justify-between gap-2 text-[11px] text-gray-400">
-                              <span className="truncate">
-                                {changed && r.quantity !== null && e?.qty !== undefined ? (
-                                  <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                                    was {r.quantity} → {qtyStr || '–'}
-                                  </span>
+                              {/* 3. Segment */}
+                              <td className="py-3 px-4 whitespace-nowrap text-xs font-medium text-gray-700 dark:text-gray-300">
+                                {r.segment || r.category || '—'}
+                              </td>
+
+                              {/* 4. Class */}
+                              <td className="py-3 px-4 whitespace-nowrap text-xs font-semibold text-gray-900 dark:text-white">
+                                {r.class || '—'}
+                              </td>
+
+                              {/* 5. SubClass (Exact variations: storage, size, RAM, wattage) */}
+                              <td className="py-3 px-4 font-bold text-gray-950 dark:text-white">
+                                {r.name}
+                              </td>
+
+                              {/* 6. Color */}
+                              <td className="py-3 px-4 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                                <span className="inline-block px-2 py-0.5 rounded bg-gray-50 dark:bg-zinc-800 border border-gray-200/60 dark:border-zinc-700 font-medium text-[11px]">
+                                  {r.variant || 'Standard'}
+                                </span>
+                              </td>
+
+                              {/* 7. SerialNumber / Identifier */}
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <span className="font-mono text-[11px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-zinc-900 px-2 py-0.5 rounded border border-gray-200/60 dark:border-zinc-800">
+                                  {r.sku}
+                                </span>
+                              </td>
+
+                              {/* 8. Stock (Quantity with Edit / View Mode & Actions) */}
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                {isEditing ? (
+                                  <div className="flex items-center gap-2">
+                                    {stepper(r, qtyStr, false)}
+                                    {lowAtInput(r, thrStr, true)}
+                                    <button
+                                      onClick={() => {
+                                        if (editingId === r.productId) setEditingId(null);
+                                      }}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 transition"
+                                      title="Done"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 ) : (
-                                  timeAgo(r.updatedAt)
+                                  <div className="flex items-center gap-2.5">
+                                    <span
+                                      className={`inline-block px-3 py-1 rounded-xl text-sm font-extrabold ${
+                                        r.quantity === null
+                                          ? 'text-gray-400 italic bg-gray-50 dark:bg-zinc-800/40'
+                                          : r.quantity === 0
+                                          ? 'text-red-600 bg-red-50 dark:bg-red-950/40'
+                                          : r.quantity <= r.lowStockThreshold
+                                          ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/40'
+                                          : 'text-gray-900 dark:text-white bg-gray-100/80 dark:bg-zinc-800'
+                                      }`}
+                                    >
+                                      {r.quantity !== null ? r.quantity : 'Not set'}
+                                    </span>
+                                    <StatusPill status={status} label={status === 'unknown' ? 'Not set' : undefined} />
+                                    <button
+                                      onClick={() => setEditingId(r.productId)}
+                                      className="p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition"
+                                      title="Edit stock for this item"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 )}
-                              </span>
-                              {lowAtInput(r, thrStr, true)}
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </div>
-              ))}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {grouped.map(([cat, list]) => (
+                      <div key={cat}>
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-2 px-1">
+                          {cat} <span className="font-medium text-gray-400">· {list.length}</span>
+                        </h3>
+                        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                          {list.map(({ r, status }) => {
+                            const e = edits[r.productId];
+                            const qtyStr = e?.qty ?? (r.quantity === null ? '' : String(r.quantity));
+                            const thrStr = e?.thr ?? String(r.lowStockThreshold);
+                            const changed = dirtyIds.has(r.productId);
+                            const isEditing = mode === 'edit' || editingId === r.productId;
+
+                            return (
+                              <li
+                                key={r.productId}
+                                className={`rounded-3xl border bg-white dark:bg-[#16161a] overflow-hidden flex flex-col transition ${
+                                  changed ? 'border-blue-400 ring-2 ring-blue-500/15' : 'border-gray-200/80 dark:border-white/10'
+                                }`}
+                              >
+                                <div className="p-4 flex items-start gap-3">
+                                  <CategoryIcon category={r.category} className="w-12 h-12 shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-extrabold text-gray-950 dark:text-white leading-snug">{r.name}</div>
+                                    <div className="text-xs text-gray-500 truncate">{r.variant ?? 'Standard'}</div>
+                                    <div className="font-mono text-[10px] text-gray-400">{r.sku}</div>
+                                  </div>
+                                  <StatusPill status={status} label={status === 'unknown' ? 'Not set' : undefined} />
+                                </div>
+
+                                <div className="px-4 pb-4 flex items-center justify-center">
+                                  {isEditing ? (
+                                    stepper(r, qtyStr, true)
+                                  ) : (
+                                    <div className="text-center py-1">
+                                      <span
+                                        className={`inline-block px-4 py-1.5 rounded-2xl text-lg font-black ${
+                                          r.quantity === null
+                                            ? 'text-gray-400 italic bg-gray-50 dark:bg-zinc-800/40'
+                                            : r.quantity === 0
+                                            ? 'text-red-600 bg-red-50 dark:bg-red-950/40'
+                                            : r.quantity <= r.lowStockThreshold
+                                            ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/40'
+                                            : 'text-gray-900 dark:text-white bg-gray-100/80 dark:bg-zinc-800'
+                                        }`}
+                                      >
+                                        {r.quantity !== null ? `${r.quantity} in stock` : 'Not set'}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="mt-auto px-4 py-2.5 border-t border-gray-100 dark:border-white/5 flex items-center justify-between gap-2 text-[11px] text-gray-400">
+                                  {isEditing ? (
+                                    <>
+                                      <span className="truncate">
+                                        {changed && r.quantity !== null && e?.qty !== undefined ? (
+                                          <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                                            was {r.quantity} → {qtyStr || '–'}
+                                          </span>
+                                        ) : (
+                                          timeAgo(r.updatedAt)
+                                        )}
+                                      </span>
+                                      {lowAtInput(r, thrStr, true)}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span>Low at {r.lowStockThreshold}</span>
+                                      <button
+                                        onClick={() => setEditingId(r.productId)}
+                                        className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                                      >
+                                        <Pencil className="w-3 h-3" /> Edit
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
 
             {!loading && tab === 'history' && (
               <div className="bg-white dark:bg-[#16161a] rounded-2xl border border-gray-100 dark:border-white/10 divide-y divide-gray-100 dark:divide-white/5 overflow-hidden">
@@ -599,14 +794,32 @@ export default function StockAdminPage() {
           {importOpen && (
             <div className="px-5 pb-5 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs text-gray-500">Columns: POS Code, SKU, Quantity, Low Stock Threshold (optional). Works across any stores.</p>
-                <a
-                  href="/iPlanet_Stock_Import_Template.csv"
-                  download
-                  className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-xl border border-blue-200/80 dark:border-blue-800/60 inline-flex items-center gap-1.5"
-                >
-                  <Download className="w-3.5 h-3.5" /> Template
-                </a>
+                <p className="text-xs text-gray-500">
+                  Accepts ERP Real Stock exports (<code className="text-blue-600 dark:text-blue-400">current stock.xlsx</code> format) or Aggregated SKU templates.
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href="/iPlanet_Real_Stock_ERP_Template.xlsx"
+                    download
+                    className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-xl border border-blue-200/80 dark:border-blue-800/60 inline-flex items-center gap-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Real Stock ERP (.xlsx)
+                  </a>
+                  <a
+                    href="/iPlanet_Real_Stock_ERP_Template.csv"
+                    download
+                    className="px-2.5 py-1.5 bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs font-medium rounded-xl border border-gray-200 dark:border-zinc-700 inline-flex items-center gap-1 hover:bg-gray-100 transition"
+                  >
+                    <Download className="w-3 h-3" /> ERP (.csv)
+                  </a>
+                  <a
+                    href="/iPlanet_Stock_Import_Template.csv"
+                    download
+                    className="px-2.5 py-1.5 bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs font-medium rounded-xl border border-gray-200 dark:border-zinc-700 inline-flex items-center gap-1 hover:bg-gray-100 transition"
+                  >
+                    <Download className="w-3 h-3" /> SKU (.csv)
+                  </a>
+                </div>
               </div>
 
               <label
@@ -641,24 +854,98 @@ export default function StockAdminPage() {
                 />
               </label>
 
+              <div className="flex items-center justify-between px-1">
+                <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={dryRunMode}
+                    onChange={e => setDryRunMode(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>🔍 Dry-run preview (Inspect counts without altering database)</span>
+                </label>
+              </div>
+
               {importResult?.error && <p className="text-sm text-red-600">{importResult.error}</p>}
               {importResult && !importResult.error && (
-                <div className="rounded-2xl bg-gray-50 dark:bg-zinc-900 p-4 text-sm space-y-2">
-                  <p className="flex items-center gap-1.5 text-emerald-600 font-semibold">
-                    <CheckCircle className="w-4 h-4" /> Imported {importResult.imported} of {importResult.totalRows} rows
-                  </p>
-                  {importResult.errors.length > 0 && (
-                    <>
-                      <p className="flex items-center gap-1.5 text-red-600 font-semibold">
-                        <AlertTriangle className="w-4 h-4" /> {importResult.errors.length} row{importResult.errors.length === 1 ? '' : 's'} skipped
+                <div className="rounded-2xl bg-gray-50 dark:bg-zinc-900 p-4 text-sm space-y-3 border border-gray-200 dark:border-zinc-800">
+                  {importResult.dryRun ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                          🔍 PREVIEW / SIMULATION
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {importResult.durationMs ? `Parsed in ${(importResult.durationMs / 1000).toFixed(2)}s` : ''}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Found <span className="text-blue-600 dark:text-blue-400 font-bold">{importResult.totalUnits?.toLocaleString()}</span> verified units across{' '}
+                        <span className="font-bold">{importResult.storesUpdated}</span> store(s).
                       </p>
-                      <ul className="text-xs text-red-600 space-y-0.5 max-h-40 overflow-y-auto">
-                        {importResult.errors.map((er: any, i: number) => (
-                          <li key={i}>
-                            Row {er.row}: {er.error}
-                          </li>
-                        ))}
-                      </ul>
+                      {importResult.skippedSummaryRows > 0 && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                          ✓ Automatically excluded {importResult.skippedSummaryRows} ERP subtotal rows (no double-counting).
+                        </p>
+                      )}
+                      {importResult.storeSummaries?.length > 0 && (
+                        <div className="max-h-48 overflow-y-auto space-y-1 text-xs border-t border-b border-gray-200 dark:border-zinc-800 py-2">
+                          {importResult.storeSummaries.map((st: any, idx: number) => (
+                            <div key={idx} className="flex justify-between py-0.5">
+                              <span className="font-medium text-gray-800 dark:text-gray-200">[{st.posCode}] {st.storeName}</span>
+                              <span className="text-gray-600 dark:text-gray-400">{st.skus} SKUs · <b>{st.units}</b> units</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {lastUploadedFile && (
+                        <button
+                          onClick={() => handleImport(lastUploadedFile, true)}
+                          disabled={importing}
+                          className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition disabled:opacity-50"
+                        >
+                          ⚡ Apply This Import to Live Database Now
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <p className="flex items-center gap-1.5 text-emerald-600 font-semibold">
+                          <CheckCircle className="w-4 h-4" /> Live Import Complete
+                        </p>
+                        <span className="text-xs text-gray-500">
+                          {importResult.durationMs ? `Done in ${(importResult.durationMs / 1000).toFixed(2)}s` : ''}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-700 dark:text-gray-300">
+                        Updated <b>{importResult.totalUnits?.toLocaleString()}</b> units across <b>{importResult.skusUpdated ?? importResult.imported}</b> SKUs in{' '}
+                        <b>{importResult.storesUpdated}</b> store(s).
+                      </p>
+                      {importResult.skippedSummaryRows > 0 && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                          ✓ Excluded {importResult.skippedSummaryRows} ERP subtotal rows for 100% count accuracy.
+                        </p>
+                      )}
+                      {importResult.newProductsCreated > 0 && (
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                          ✨ Auto-registered {importResult.newProductsCreated} new product catalogue item(s).
+                        </p>
+                      )}
+                      {importResult.errors?.length > 0 && (
+                        <>
+                          <p className="flex items-center gap-1.5 text-red-600 font-semibold text-xs">
+                            <AlertTriangle className="w-3.5 h-3.5" /> {importResult.errors.length} row(s) skipped
+                          </p>
+                          <ul className="text-xs text-red-600 space-y-0.5 max-h-32 overflow-y-auto">
+                            {importResult.errors.map((er: any, i: number) => (
+                              <li key={i}>
+                                Row {er.row}: {er.error}
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
                     </>
                   )}
                 </div>

@@ -1,0 +1,16 @@
+Store,Product,Segment,Class,SubClass,Color,SerialNumber,Stock
+CBE1,IPHONE,iPhone,iPhone 16,iPhone 16 128GB,Black,SC5J101CBE1,1
+CBE1,IPHONE,iPhone,iPhone 16,iPhone 16 128GB,White,SC5J102CBE1,1
+CBE1,IPHONE,iPhone,iPhone 16 Pro,iPhone 16 Pro 256GB,Natural Titanium,SC5J103CBE1,1
+CBE1,AIRPODS,AirPods,AirPods 4G,AirPods 4G ANC,White,SC5J201CBE1,1
+CBE1,MAC,Mac,MacBook Air 13 M3,MacBook Air 13 M3 256GB,Midnight,SC5J301CBE1,1
+CBE1,WATCH,Watch,Apple Watch Series 10,Watch Series 10 42mm GPS,Jet Black,SC5J401CBE1,1
+CBE1,FPP,Adapter,Adapter-20W,20W USB-C Power Adapter,White,SC5J501CBE1,1
+IND 1,IPHONE,iPhone,iPhone 16,iPhone 16 256GB,Teal,SC5J601IND1,1
+IND 1,IPHONE,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 256GB,Desert Titanium,SC5J602IND1,1
+IND 1,IPAD,iPad,iPad Air 11 M2,iPad Air 11 M2 128GB Wi-Fi,Space Grey,SC5J701IND1,1
+IND 1,AIRPODS,AirPods,AirPods Pro 2,AirPods Pro (2nd Gen) USB-C,White,SC5J801IND1,1
+PBZ1,IPHONE,iPhone,iPhone 15,iPhone 15 128GB,Blue,SC5J901PBZ1,1
+PBZ1,MAC,Mac,MacBook Pro 14 M3,MacBook Pro 14 M3 512GB,Space Black,SC5J902PBZ1,1
+PBZ1,TPP,Case,Case iPhone,Spigen Ultra Hybrid iPhone 16,Clear,SC5J903PBZ1,1
+PBZ1,TPP,Power Bank,Power Bank,Anker 10000mAh MagSafe Power Bank,Black,SC5J904PBZ1,1
