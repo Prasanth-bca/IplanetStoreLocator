@@ -725,3 +725,70 @@ div.min-h-screen[class*="bg-[#F3F1FD]"] { background: transparent; }
     background-color: rgba(26, 23, 64, 0.9);
   }
 }
+
+/* ───── depth: layered elevation, hover lift, floating light behind the page ───── */
+:root {
+  --elev-1: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 0 1px 2px rgba(31, 27, 69, 0.05), 0 6px 18px -8px rgba(31, 27, 69, 0.14), 0 22px 44px -26px rgba(74, 61, 192, 0.22);
+  --elev-2: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 2px 4px rgba(31, 27, 69, 0.06), 0 14px 30px -10px rgba(31, 27, 69, 0.2), 0 34px 60px -28px rgba(74, 61, 192, 0.32);
+}
+.dark {
+  --elev-1: 0 1px 0 rgba(255, 255, 255, 0.07) inset, 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 22px -8px rgba(0, 0, 0, 0.55), 0 24px 48px -26px rgba(0, 0, 0, 0.7);
+  --elev-2: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 2px 4px rgba(0, 0, 0, 0.45), 0 16px 34px -10px rgba(0, 0, 0, 0.65), 0 36px 64px -28px rgba(108, 95, 220, 0.4);
+}
+.rounded-3xl.bg-white, .rounded-2xl.bg-white, .rounded-xl.bg-white.shadow-sm,
+.dark .rounded-3xl[class*="dark:bg-[#1A1740]"], .dark .rounded-2xl[class*="dark:bg-[#1A1740]"] {
+  box-shadow: var(--elev-1);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+}
+/* clickable cards rise toward the viewer */
+a.rounded-3xl:hover, a.rounded-2xl:hover, article.rounded-3xl:hover, article.rounded-2xl:hover, button.rounded-3xl:hover, button.rounded-2xl:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--elev-2);
+}
+a.rounded-3xl:active, a.rounded-2xl:active { transform: translateY(-1px); }
+/* the small controls get a soft lift too */
+.btn-secondary:hover, .btn-wa:hover { transform: translateY(-1px); }
+header.sticky { box-shadow: 0 8px 24px -16px rgba(31, 27, 69, 0.28); }
+.dark header.sticky { box-shadow: 0 8px 24px -14px rgba(0, 0, 0, 0.7); }
+
+/* two slow orbs of light, far behind everything */
+body::before, body::after {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(70px);
+}
+body::before {
+  width: 38rem; height: 38rem; left: -10rem; top: 10vh;
+  background: radial-gradient(circle, rgba(108, 95, 220, 0.34), transparent 65%);
+  animation: orb-a 32s ease-in-out infinite alternate;
+}
+body::after {
+  width: 34rem; height: 34rem; right: -9rem; bottom: -6rem;
+  background: radial-gradient(circle, rgba(168, 158, 242, 0.42), transparent 65%);
+  animation: orb-b 40s ease-in-out infinite alternate;
+}
+.dark body::before { background: radial-gradient(circle, rgba(74, 61, 192, 0.4), transparent 65%); }
+.dark body::after { background: radial-gradient(circle, rgba(108, 95, 220, 0.28), transparent 65%); }
+@keyframes orb-a { to { transform: translate(18vw, 14vh) scale(1.15); } }
+@keyframes orb-b { to { transform: translate(-16vw, -12vh) scale(1.1); } }
+
+/* ───── page to page transition: the new page fades, rises and sharpens; its blocks arrive one after another ───── */
+.page-enter { animation: page-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.995); filter: blur(5px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.page-enter main > *, .page-enter .locator-grid > * { animation: block-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.page-enter main > *:nth-child(1), .page-enter .locator-grid > *:nth-child(1) { animation-delay: 0.04s; }
+.page-enter main > *:nth-child(2), .page-enter .locator-grid > *:nth-child(2) { animation-delay: 0.1s; }
+.page-enter main > *:nth-child(3), .page-enter .locator-grid > *:nth-child(3) { animation-delay: 0.16s; }
+.page-enter main > *:nth-child(n+4) { animation-delay: 0.22s; }
+@keyframes block-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  body::before, body::after, .page-enter, .page-enter main > *, .page-enter .locator-grid > * { animation: none !important; }
+  a.rounded-3xl:hover, a.rounded-2xl:hover, article.rounded-3xl:hover, article.rounded-2xl:hover { transform: none; }
+}
