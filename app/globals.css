@@ -166,6 +166,68 @@
   --pal-tint-dark: 15 23 42;
 }
 
+:root[data-palette="navy-crimson"] {
+  --blue-50: 243 245 248;
+  --blue-100: 229 234 240;
+  --blue-200: 203 211 223;
+  --blue-300: 169 180 198;
+  --blue-400: 141 153 174;
+  --blue-500: 90 98 128;
+  --blue-600: 43 45 66;
+  --blue-700: 34 36 56;
+  --blue-800: 27 29 46;
+  --blue-900: 20 21 36;
+  --blue-950: 13 14 24;
+  --gray-50: 247 249 250;
+  --gray-100: 237 242 244;
+  --gray-200: 220 227 232;
+  --gray-300: 195 204 214;
+  --gray-400: 141 153 174;
+  --gray-500: 95 107 128;
+  --gray-600: 74 83 104;
+  --gray-700: 55 60 82;
+  --gray-800: 43 45 66;
+  --gray-900: 43 45 66;
+  --gray-950: 27 29 46;
+  --zinc-50: 245 247 250;
+  --zinc-100: 234 238 242;
+  --zinc-200: 213 219 227;
+  --zinc-300: 181 190 203;
+  --zinc-400: 141 153 174;
+  --zinc-500: 102 112 134;
+  --zinc-600: 68 74 97;
+  --zinc-700: 51 55 80;
+  --zinc-800: 38 40 59;
+  --zinc-900: 28 30 47;
+  --zinc-950: 20 21 42;
+  --pal-page: 237 242 244;
+  --pal-page-dark: 15 16 32;
+  --pal-card-dark: 28 30 47;
+  --pal-bar-dark: 20 21 42;
+  --pal-card2-dark: 38 40 59;
+  --pal-ink: 43 45 66;
+  --pal-brand: 43 45 66;
+  --pal-brand-dark: 34 36 56;
+  --pal-brand-light: 141 153 174;
+  --pal-brand-mid: 90 98 128;
+  --pal-brand-soft: 169 180 198;
+  --pal-brand-pale: 203 211 223;
+  --pal-accent-a: 239 35 60;
+  --pal-accent-b: 217 4 41;
+  --pal-accent-c: 184 3 34;
+  --pal-tint-1: 227 233 238;
+  --pal-tint-2: 246 248 250;
+  --pal-tint-dark: 20 22 43;
+}
+/* navy is too dark to read as the interactive colour on dark surfaces, so lift it in dark mode */
+:root.dark[data-palette="navy-crimson"] {
+  --blue-500: 124 134 166;
+  --blue-600: 90 98 128;
+  --blue-700: 107 116 146;
+  --pal-brand: 141 153 174;
+  --pal-brand-dark: 169 180 198;
+}
+
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   --color-brand: rgb(var(--pal-brand));

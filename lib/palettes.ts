@@ -6,14 +6,15 @@ export interface PaletteOption {
   id: string;
   name: string;
   note: string;
-  /** Four swatches for the menu: main, accent, soft, background. */
-  swatches: [string, string, string, string];
+  /** Swatches shown in the menu, main colour first. */
+  swatches: string[];
 }
 
 export const PALETTES: PaletteOption[] = [
   { id: 'purple', name: 'Indigo Purple', note: 'Current look, from the sign-in page', swatches: ['#4A3DC0', '#6C5FDC', '#C9C2F8', '#F3F1FD'] },
   { id: 'teal', name: 'Teal & Cream', note: 'Deep teal, cream and coral buttons', swatches: ['#1B7268', '#2A9D8F', '#D2593B', '#F4EDE4'] },
   { id: 'classic', name: 'Classic Blue', note: 'The original blue look', swatches: ['#0066CC', '#2997FF', '#BFDBFE', '#FBFBFD'] },
+  { id: 'navy-crimson', name: 'Navy & Crimson', note: 'Midnight navy, slate and red buttons', swatches: ['#2B2D42', '#8D99AE', '#EDF2F4', '#EF233C', '#D90429'] },
 ];
 
 export const DEFAULT_PALETTE = 'purple';
