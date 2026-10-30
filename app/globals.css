@@ -1016,3 +1016,33 @@ body::after {
   body::before, body::after, .page-enter, .page-enter main > *, .page-enter .locator-grid > * { animation: none !important; }
   a.rounded-3xl:hover, a.rounded-2xl:hover, article.rounded-3xl:hover, article.rounded-2xl:hover { transform: none; }
 }
+
+/* sign-in scene colours, all derived from the active palette so the page follows Admin > Theme */
+.login-frame {
+  --ls-sky-1: rgb(var(--pal-brand-pale));
+  --ls-sky-2: rgb(var(--pal-tint-1));
+  --ls-sky-3: color-mix(in srgb, rgb(var(--pal-brand-pale)) 70%, rgb(var(--pal-tint-1)));
+  --ls-sky-4: rgb(var(--pal-brand-soft));
+  --ls-far-a: color-mix(in srgb, rgb(var(--pal-brand-pale)) 75%, rgb(var(--pal-brand-soft)));
+  --ls-far-b: rgb(var(--pal-brand-soft));
+  --ls-mid-a: rgb(var(--pal-brand-mid));
+  --ls-mid-b: color-mix(in srgb, rgb(var(--pal-brand-mid)) 55%, rgb(var(--pal-brand)));
+  --ls-peak-a: rgb(var(--pal-brand));
+  --ls-peak-b: rgb(var(--pal-brand-dark));
+  --ls-near-a: rgb(var(--pal-brand-dark));
+  --ls-near-b: color-mix(in srgb, rgb(var(--pal-ink)) 85%, black);
+  --ls-forest-1: color-mix(in srgb, rgb(var(--pal-ink)) 80%, rgb(var(--pal-brand-dark)));
+  --ls-forest-2: color-mix(in srgb, rgb(var(--pal-ink)) 70%, black);
+  --ls-forest-3: color-mix(in srgb, rgb(var(--pal-ink)) 50%, black);
+  --ls-cloud: rgb(var(--pal-tint-2));
+  --ls-bird: rgb(var(--pal-brand-dark));
+  box-shadow: 0 30px 80px -30px rgb(var(--pal-brand) / 0.6);
+}
+.login-glass {
+  background: rgb(var(--pal-brand-dark) / 0.26);
+  box-shadow: 0 10px 40px -10px rgb(var(--pal-ink) / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+
+:root[data-palette="navy-crimson"] .login-frame { --ls-sun: rgb(var(--pal-accent-a) / 0.75); --ls-btn-bg: linear-gradient(135deg, rgb(var(--pal-accent-a)), rgb(var(--pal-accent-b))); --ls-btn-fg: #fff; }
+.login-submit { background: var(--ls-btn-bg, #fff); color: var(--ls-btn-fg, rgb(var(--pal-brand-dark))); }
+.login-submit:hover:not(:disabled) { filter: brightness(1.06); }

@@ -55,8 +55,8 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#d6d2f7] to-[#8a82e6] dark:from-[#1b1740] dark:to-[#0f0c2e] sm:p-6 lg:p-10">
-      <div className="login-frame relative flex w-full max-w-[1100px] items-center justify-center overflow-hidden sm:rounded-[2rem] shadow-[0_30px_80px_-30px_rgba(60,40,160,0.65)] min-h-screen sm:min-h-[600px] sm:h-[min(640px,88vh)] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pal-tint-1 to-pal-brand-soft dark:from-pal-card-dark dark:to-pal-page-dark sm:p-6 lg:p-10">
+      <div className="login-frame relative flex w-full max-w-[1100px] items-center justify-center overflow-hidden sm:rounded-[2rem] min-h-screen sm:min-h-[600px] sm:h-[min(640px,88vh)] px-4">
         <LoginMountains />
 
         <div className="login-glass relative z-10 w-full max-w-[320px] rounded-2xl px-7 py-8 text-white">
@@ -105,7 +105,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={isSubmitting || !username.trim() || !password}
-              className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-white px-4 py-3 text-sm font-semibold text-[#2f2593] shadow-lg transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-2 inline-flex w-full items-center justify-center gap-1.5 login-submit rounded-full px-4 py-3 text-sm font-semibold shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>
