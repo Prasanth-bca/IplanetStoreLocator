@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Loader2, AlertCircle } from 'lucide-react';
 import { resetCurrentUser } from '@/lib/useCurrentUser';
 import { isAppPage } from '@/lib/access';
+import { LoginBackdrop } from '@/components/LoginBackdrop';
 
 export default function LoginPage() {
   return (
@@ -54,10 +55,11 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] dark:bg-[#0a0a0c] text-gray-900 dark:text-gray-100 px-4 transition-colors duration-200">
-      <div className="w-full max-w-sm">
-        <div className="bg-white dark:bg-[#16161a] rounded-3xl p-8 border border-gray-200/80 dark:border-white/10 shadow-sm">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 mb-5">
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-[#f5f7ff] to-indigo-50 dark:from-[#07070a] dark:via-[#0b0c14] dark:to-[#0a0a12] text-gray-900 dark:text-gray-100 px-4 transition-colors duration-200 overflow-hidden">
+      <LoginBackdrop />
+      <div className="relative z-10 w-full max-w-sm">
+        <div className="glass-card rounded-3xl p-8">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/20 ring-1 ring-white/60 dark:ring-white/10 mb-5">
             <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
 
@@ -80,7 +82,7 @@ function LoginForm() {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 placeholder="Username"
-                className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition"
+                className="w-full bg-white/60 dark:bg-white/5 border border-white/70 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition"
               />
             </div>
 
@@ -92,7 +94,7 @@ function LoginForm() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Password"
-                className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition"
+                className="w-full bg-white/60 dark:bg-white/5 border border-white/70 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition"
               />
             </div>
 

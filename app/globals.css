@@ -589,3 +589,53 @@ body {
 @media (min-width: 1536px) {
   .locator-grid { grid-template-columns: 440px minmax(0, 1fr); gap: 2rem; }
 }
+
+/* ───── sign-in page: animated scene + glass card ───── */
+.login-scene { color: rgba(59, 130, 246, 0.07); }
+.dark .login-scene { color: rgba(147, 197, 253, 0.07); }
+.login-blob { opacity: 0.38; transform-box: fill-box; transform-origin: center; }
+.dark .login-blob { opacity: 0.3; }
+.login-blob-a { animation: login-drift-a 20s ease-in-out infinite alternate; }
+.login-blob-b { animation: login-drift-b 24s ease-in-out infinite alternate; }
+.login-blob-c { animation: login-drift-a 28s ease-in-out infinite alternate-reverse; }
+.login-blob-d { animation: login-drift-b 22s ease-in-out infinite alternate-reverse; }
+@keyframes login-drift-a { to { transform: translate(90px, 60px) scale(1.12); } }
+@keyframes login-drift-b { to { transform: translate(-80px, 70px) scale(0.92); } }
+.login-pulse { transform-box: fill-box; transform-origin: center; animation: login-pulse 3.6s ease-out infinite; opacity: 0; }
+@keyframes login-pulse { 0% { transform: scale(0.1); opacity: 0.9; } 100% { transform: scale(1.6); opacity: 0; } }
+.login-dash { animation: login-dash 2.4s linear infinite; }
+@keyframes login-dash { to { stroke-dashoffset: -64; } }
+.login-pin { filter: blur(1.6px) drop-shadow(0 6px 10px rgba(79, 70, 229, 0.35)); animation: login-float 5s ease-in-out infinite; opacity: 0.85; }
+@keyframes login-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.42));
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 20px 60px -20px rgba(30, 64, 175, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+}
+.dark .glass-card {
+  background: linear-gradient(135deg, rgba(30, 30, 38, 0.7), rgba(18, 18, 24, 0.5));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.glass-card { animation: login-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes login-rise { from { opacity: 0; transform: translateY(18px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+/* line-art: pathLength=1, so one dash covers the whole shape. Draw in, hold, then erase from the start. */
+.login-art { opacity: 0.55; }
+.dark .login-art { opacity: 0.7; }
+.login-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: login-draw 9s ease-in-out infinite; }
+.login-draw-slow { animation-duration: 12s; }
+@keyframes login-draw {
+  0% { stroke-dashoffset: 1; }
+  35%, 70% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-draw { animation: none !important; stroke-dashoffset: 0; }
+  .login-blob, .login-pulse, .login-dash, .login-pin, .glass-card { animation: none !important; }
+  .login-pulse { opacity: 0.25; transform: scale(0.8); }
+}
