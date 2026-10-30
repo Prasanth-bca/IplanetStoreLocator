@@ -672,3 +672,56 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .mtn-cloud-a, .mtn-cloud-b, .mtn-bird, .login-glass { animation: none !important; }
 }
+
+/* ───── light glass: cards, bars, popups and dropdowns, kept subtle so text stays easy to read ───── */
+body {
+  background-image:
+    radial-gradient(60rem 40rem at 8% -5%, rgba(142, 130, 235, 0.22), transparent 60%),
+    radial-gradient(50rem 36rem at 95% 8%, rgba(201, 194, 248, 0.45), transparent 60%),
+    radial-gradient(55rem 40rem at 70% 105%, rgba(168, 158, 242, 0.20), transparent 60%);
+  background-attachment: fixed;
+}
+.dark body {
+  background-image:
+    radial-gradient(60rem 40rem at 8% -5%, rgba(108, 95, 220, 0.22), transparent 60%),
+    radial-gradient(50rem 36rem at 95% 8%, rgba(74, 61, 192, 0.20), transparent 60%),
+    radial-gradient(55rem 40rem at 70% 105%, rgba(142, 130, 235, 0.12), transparent 60%);
+}
+/* page wrappers paint a solid colour; let the body gradient show through */
+div.min-h-screen[class*="bg-[#F3F1FD]"] { background: transparent; }
+.dark div.min-h-screen[class*="dark:bg-[#0d0b26]"] { background: transparent; }
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  /* white and dark cards */
+  .rounded-3xl.bg-white, .rounded-2xl.bg-white, .rounded-xl.bg-white.shadow-sm {
+    background-color: rgba(255, 255, 255, 0.74);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    backdrop-filter: blur(12px) saturate(150%);
+  }
+  .dark .rounded-3xl[class*="dark:bg-[#1A1740]"], .dark .rounded-2xl[class*="dark:bg-[#1A1740]"], .dark .rounded-t-3xl[class*="dark:bg-[#1A1740]"] {
+    background-color: rgba(26, 23, 64, 0.72);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+  }
+  /* solid top bars */
+  header.sticky, header[class*="bg-white"] {
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
+  }
+  header.sticky[class*="bg-white"] { background-color: rgba(255, 255, 255, 0.78); }
+  .dark header.sticky[class*="dark:bg-[#121030]"] { background-color: rgba(18, 16, 48, 0.78); }
+  /* dimmed backdrops behind popups */
+  .fixed.inset-0[class*="bg-black"] {
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+  }
+  /* floating lists (device search results, menus) */
+  [role="listbox"] {
+    background-color: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
+  }
+  .dark [role="listbox"] {
+    background-color: rgba(26, 23, 64, 0.9);
+  }
+}
