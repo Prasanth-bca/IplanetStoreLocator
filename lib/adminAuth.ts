@@ -10,6 +10,8 @@ export interface SessionPayload {
   role: Role;
   /** Matches User.tokenVersion; a mismatch means the session was revoked. */
   tv: number;
+  /** Matches UserSession.id for live tracking and audit logging. */
+  sid?: string;
   exp: number;
 }
 

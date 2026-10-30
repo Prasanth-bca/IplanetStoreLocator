@@ -295,6 +295,14 @@ export default function AdminPage() {
               <span>Stock</span>
             </Link>
             <Link
+              href="/admin/sessions"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-xl text-xs font-semibold transition"
+              title="Live Active User Monitoring & Login Reports"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Monitoring</span>
+            </Link>
+            <Link
               href="/admin/users"
               className="inline-flex items-center gap-1.5 px-3 py-2 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-semibold transition"
             >

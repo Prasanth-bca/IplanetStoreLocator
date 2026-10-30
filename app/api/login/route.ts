@@ -1,3 +1,4 @@
+import { parseUserAgent } from '@/lib/userAgent';
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
@@ -43,7 +44,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Enter your username and password.' }, { status: 400 });
     }
 
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown';
+    const userAgent = request.headers.get('user-agent') || '';
+    const client = parseUserAgent(userAgent);
+
     const wait = retryAfterSeconds(ip, username);
     if (wait > 0) {
       return NextResponse.json(
@@ -58,15 +62,59 @@ export async function POST(request: NextRequest) {
       if (!user) {
         await burnPasswordCheck(password); // same response time whether or not the username exists
         recordFailure(ip, username);
+        await prisma.userSession.create({
+          data: {
+            username,
+            ipAddress: ip,
+            userAgent,
+            deviceType: client.deviceType,
+            browser: client.browser,
+            os: client.os,
+            currentPath: '/login',
+            status: 'FAILED',
+            failReason: 'User not found',
+          },
+        }).catch(() => {});
         return NextResponse.json({ error: BAD_LOGIN }, { status: 401 });
       }
     } else if (!(await verifyPassword(password, user.passwordHash))) {
       recordFailure(ip, username);
+      await prisma.userSession.create({
+        data: {
+          userId: user.id,
+          username: user.username,
+          name: user.name,
+          role: user.role,
+          ipAddress: ip,
+          userAgent,
+          deviceType: client.deviceType,
+          browser: client.browser,
+          os: client.os,
+          currentPath: '/login',
+          status: 'FAILED',
+          failReason: 'Incorrect password',
+        },
+      }).catch(() => {});
       return NextResponse.json({ error: BAD_LOGIN }, { status: 401 });
     }
 
     if (!user.active) {
-      // Only said once the password is right, so it doesn't reveal which usernames exist.
+      await prisma.userSession.create({
+        data: {
+          userId: user.id,
+          username: user.username,
+          name: user.name,
+          role: user.role,
+          ipAddress: ip,
+          userAgent,
+          deviceType: client.deviceType,
+          browser: client.browser,
+          os: client.os,
+          currentPath: '/login',
+          status: 'FAILED',
+          failReason: 'Account disabled',
+        },
+      }).catch(() => {});
       return NextResponse.json({ error: 'This account is disabled. Please contact an admin.' }, { status: 403 });
     }
     if (!isRole(user.role)) {
@@ -76,7 +124,29 @@ export async function POST(request: NextRequest) {
     clearFailures(ip, username);
     await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 
-    const token = await createSessionToken({ uid: user.id, role: user.role, tv: user.tokenVersion });
+    // Create active session in database
+    const session = await prisma.userSession.create({
+      data: {
+        userId: user.id,
+        username: user.username,
+        name: user.name,
+        role: user.role,
+        ipAddress: ip,
+        userAgent,
+        deviceType: client.deviceType,
+        browser: client.browser,
+        os: client.os,
+        currentPath: user.role === 'ADMIN' ? '/admin' : '/locator',
+        status: 'ACTIVE',
+      },
+    });
+
+    const token = await createSessionToken({
+      uid: user.id,
+      role: user.role,
+      tv: user.tokenVersion,
+      sid: session.id,
+    });
     const response = NextResponse.json({ success: true, user: { name: user.name, role: user.role } });
     response.cookies.set(SESSION_COOKIE, token, {
       httpOnly: true,

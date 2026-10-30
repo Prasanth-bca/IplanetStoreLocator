@@ -83,6 +83,14 @@ export default function UsersAdminPage() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href="/admin/sessions"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/40 text-xs font-bold hover:bg-emerald-100 transition"
+              title="View live active users and login session history"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="hidden sm:inline">Live Monitoring</span>
+            </Link>
             <button onClick={() => setDialog({ kind: 'create' })} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">
               <Plus className="w-4 h-4" /> Add user
             </button>

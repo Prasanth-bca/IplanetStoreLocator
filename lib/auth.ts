@@ -55,6 +55,7 @@ export interface SessionUser {
   username: string;
   name: string;
   role: Role;
+  sessionId?: string;
 }
 
 const USER_CACHE_TTL_MS = 30 * 1000;
@@ -85,7 +86,7 @@ export async function getSessionUser(request: NextRequest): Promise<SessionUser 
   const user = await loadUser(claims.uid);
   if (!user || !user.active || user.tokenVersion !== claims.tv) return null;
   // The role always comes from the database, never from the token.
-  return { id: user.id, username: user.username, name: user.name, role: user.role };
+  return { id: user.id, username: user.username, name: user.name, role: user.role, sessionId: claims.sid };
 }
 
 type Guard = { ok: true; user: SessionUser } | { ok: false; response: NextResponse };

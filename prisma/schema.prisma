@@ -150,7 +150,35 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  leads Lead[]
+  leads    Lead[]
+  sessions UserSession[]
 
   @@map("users")
+}
+
+/// Historical and real-time login sessions and live monitoring activity.
+model UserSession {
+  id           String    @id @default(cuid())
+  userId       String?   @map("user_id")
+  username     String
+  name         String?
+  role         String?
+  ipAddress    String?   @map("ip_address")
+  userAgent    String?   @map("user_agent")
+  deviceType   String?   @map("device_type")
+  browser      String?
+  os           String?
+  currentPath  String?   @default("/") @map("current_path")
+  status       String    @default("ACTIVE")
+  loginAt      DateTime  @default(now()) @map("login_at")
+  lastActiveAt DateTime  @default(now()) @map("last_active_at")
+  endedAt      DateTime? @map("ended_at")
+  failReason   String?   @map("fail_reason")
+
+  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, loginAt])
+  @@index([lastActiveAt])
+  @@index([status])
+  @@map("user_sessions")
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { UserHeartbeat } from '@/components/UserHeartbeat';
 
 export const metadata: Metadata = {
   title: 'iPlanet AI Store Locator | Find Nearest iPlanet Retail Store',
@@ -31,6 +32,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen flex flex-col bg-[#fbfbfd] text-[#1d1d1f] dark:bg-[#0a0a0c] dark:text-[#f5f5f7] transition-colors duration-200">
         <ThemeProvider>
+          <UserHeartbeat />
           {children}
         </ThemeProvider>
       </body>
