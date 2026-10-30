@@ -38,8 +38,8 @@ export const SearchHero: React.FC<SearchHeroProps> = ({
     <section
       className={
         embedded
-          ? 'rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#16161a] shadow-sm p-5'
-          : 'w-full border-b border-black/[0.06] dark:border-white/10 bg-white/60 dark:bg-[#0e0e11]/60'
+          ? 'rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#142830] shadow-sm p-5'
+          : 'w-full border-b border-black/[0.06] dark:border-white/10 bg-white/60 dark:bg-[#0f1e25]/60'
       }
     >
       {/* Same container as the navbar and results, so everything shares one left edge */}

@@ -43,8 +43,8 @@ export const Navbar: React.FC = () => {
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-white/90 dark:bg-[#0e0e11]/90 backdrop-blur-xl border-b border-black/8 dark:border-white/10 shadow-sm'
-          : 'bg-white/70 dark:bg-[#0e0e11]/70 backdrop-blur-md border-b border-transparent'
+          ? 'bg-white/90 dark:bg-[#0f1e25]/90 backdrop-blur-xl border-b border-black/8 dark:border-white/10 shadow-sm'
+          : 'bg-white/70 dark:bg-[#0f1e25]/70 backdrop-blur-md border-b border-transparent'
       }`}
     >
       <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 min-h-16 py-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -52,7 +52,7 @@ export const Navbar: React.FC = () => {
         <Link href="/locator" className="flex items-center gap-3 group shrink-0">
           {/* Apple-style logo mark */}
           <div className="relative">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 dark:from-white dark:to-zinc-300 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all group-hover:scale-105">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#264653] to-[#2A9D8F] dark:from-[#F4EDE4] dark:to-[#E9C9B8] flex items-center justify-center shadow-md group-hover:shadow-lg transition-all group-hover:scale-105">
               {/* Apple icon SVG */}
               <svg
                 width="20"

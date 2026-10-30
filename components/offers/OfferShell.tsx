@@ -40,8 +40,8 @@ export function OfferShell({ title, icon, children }: { title: string; icon: Rea
       aria-label={title}
       className={`relative overflow-hidden rounded-3xl border p-5 transition-colors ${
         festive
-          ? 'border-amber-300/80 dark:border-amber-600/50 bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-amber-950/40 dark:via-[#16161a] dark:to-orange-950/30 shadow-[0_8px_30px_-12px_rgba(217,119,6,0.45)]'
-          : 'border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#16161a] shadow-sm'
+          ? 'border-amber-300/80 dark:border-amber-600/50 bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-amber-950/40 dark:via-[#142830] dark:to-orange-950/30 shadow-[0_8px_30px_-12px_rgba(217,119,6,0.45)]'
+          : 'border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#142830] shadow-sm'
       }`}
     >
       {festive && (

@@ -199,7 +199,7 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ storeName, posCode, pr
       ref={formRef}
       onSubmit={handleSubmit}
       noValidate
-      className="mx-4 mt-3 mb-1 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-white dark:bg-[#16161a] overflow-hidden"
+      className="mx-4 mt-3 mb-1 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-white dark:bg-[#142830] overflow-hidden"
       aria-label="Pass enquiry to store"
     >
       <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-blue-50/70 dark:bg-blue-950/30 border-b border-blue-100 dark:border-blue-900/50">

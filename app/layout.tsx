@@ -30,7 +30,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen flex flex-col bg-[#fbfbfd] text-[#1d1d1f] dark:bg-[#0a0a0c] dark:text-[#f5f5f7] transition-colors duration-200">
+      <body className="min-h-screen flex flex-col bg-[#F4EDE4] text-[#264653] dark:bg-[#0b171c] dark:text-[#F4EDE4] transition-colors duration-200">
         <ThemeProvider>
           <UserHeartbeat />
           {children}

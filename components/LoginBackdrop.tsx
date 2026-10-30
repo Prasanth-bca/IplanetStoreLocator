@@ -12,21 +12,21 @@ export function LoginBackdrop() {
             <feGaussianBlur stdDeviation="2.2" />
           </filter>
           <linearGradient id="login-route" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#3b82f6" stopOpacity="0" />
-            <stop offset="0.5" stopColor="#6366f1" stopOpacity="0.9" />
-            <stop offset="1" stopColor="#06b6d4" stopOpacity="0" />
+            <stop offset="0" stopColor="#2A9D8F" stopOpacity="0" />
+            <stop offset="0.5" stopColor="#2A9D8F" stopOpacity="0.9" />
+            <stop offset="1" stopColor="#264653" stopOpacity="0" />
           </linearGradient>
           <radialGradient id="login-ring" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0.6" stopColor="#3b82f6" stopOpacity="0" />
-            <stop offset="1" stopColor="#3b82f6" stopOpacity="0.55" />
+            <stop offset="0.6" stopColor="#2A9D8F" stopOpacity="0" />
+            <stop offset="1" stopColor="#2A9D8F" stopOpacity="0.55" />
           </radialGradient>
         </defs>
 
         <g filter="url(#login-blur)">
-          <circle className="login-blob login-blob-a" cx="260" cy="200" r="230" fill="#3b82f6" />
-          <circle className="login-blob login-blob-b" cx="980" cy="260" r="210" fill="#8b5cf6" />
-          <circle className="login-blob login-blob-c" cx="760" cy="680" r="240" fill="#06b6d4" />
-          <circle className="login-blob login-blob-d" cx="170" cy="640" r="170" fill="#f59e0b" />
+          <circle className="login-blob login-blob-a" cx="260" cy="200" r="230" fill="#2A9D8F" />
+          <circle className="login-blob login-blob-b" cx="980" cy="260" r="210" fill="#E76F51" />
+          <circle className="login-blob login-blob-c" cx="760" cy="680" r="240" fill="#264653" />
+          <circle className="login-blob login-blob-d" cx="170" cy="640" r="170" fill="#E9A98F" />
         </g>
 
         {/* faint map grid */}
@@ -48,7 +48,7 @@ export function LoginBackdrop() {
             {[0, 1, 2].map((i) => (
               <circle key={i} r="90" fill="url(#login-ring)" className="login-pulse" style={{ animationDelay: `calc(${s.d} + ${i * 1.2}s)` }} />
             ))}
-            <circle r="5" fill="#3b82f6" />
+            <circle r="5" fill="#2A9D8F" />
           </g>
         ))}
 
@@ -60,8 +60,8 @@ export function LoginBackdrop() {
       <svg className="login-art absolute inset-0 h-full w-full" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" fill="none" strokeLinecap="round" strokeLinejoin="round">
         <defs>
           <linearGradient id="login-ink" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#3b82f6" />
-            <stop offset="1" stopColor="#8b5cf6" />
+            <stop offset="0" stopColor="#2A9D8F" />
+            <stop offset="1" stopColor="#E76F51" />
           </linearGradient>
           <filter id="login-ink-blur" x="-10%" y="-10%" width="120%" height="120%">
             <feGaussianBlur stdDeviation="0.9" />
@@ -111,8 +111,8 @@ export function LoginBackdrop() {
           <circle cx="12" cy="11.5" r="4.5" fill="#fff" fillOpacity=".9" />
           <defs>
             <linearGradient id="login-pin-grad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#60a5fa" />
-              <stop offset="1" stopColor="#4f46e5" />
+              <stop offset="0" stopColor="#E76F51" />
+              <stop offset="1" stopColor="#BF4B31" />
             </linearGradient>
           </defs>
         </svg>

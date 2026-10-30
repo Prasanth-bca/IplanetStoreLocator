@@ -55,7 +55,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-[#f5f7ff] to-indigo-50 dark:from-[#07070a] dark:via-[#0b0c14] dark:to-[#0a0a12] text-gray-900 dark:text-gray-100 px-4 transition-colors duration-200 overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-[#F4EDE4] to-indigo-50 dark:from-[#07070a] dark:via-[#0b0c14] dark:to-[#0a0a12] text-gray-900 dark:text-gray-100 px-4 transition-colors duration-200 overflow-hidden">
       <LoginBackdrop />
       <div className="relative z-10 w-full max-w-sm">
         <div className="glass-card rounded-3xl p-8">
@@ -108,7 +108,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={isSubmitting || !username.trim() || !password}
-              className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold shadow-sm transition"
+              className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#BF4B31] hover:bg-[#A53E26] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold shadow-sm transition"
             >
               {isSubmitting ? (
                 <>

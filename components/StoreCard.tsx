@@ -98,7 +98,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({ result, isSelected, onSele
         animationDelay: `${index * 80}ms`,
         animationFillMode: 'both',
         ...(isSelected
-          ? { borderColor: '#0066cc', boxShadow: 'var(--shadow-selected)' }
+          ? { borderColor: '#1B7268', boxShadow: 'var(--shadow-selected)' }
           : {}),
       }}
     >

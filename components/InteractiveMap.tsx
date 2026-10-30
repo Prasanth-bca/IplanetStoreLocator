@@ -39,14 +39,14 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none gap-2">
         {/* Count Pill */}
         <div className="glass-panel px-3.5 py-2 rounded-2xl shadow-md text-xs font-semibold text-gray-800 flex items-center gap-2 pointer-events-auto">
-          <MapPin className="w-4 h-4 text-[#0066cc]" />
+          <MapPin className="w-4 h-4 text-[#1B7268]" />
           <span>{validStores.length} Stores Mapped</span>
         </div>
 
         {/* Selected Store Pill */}
         {selectedResult && (
           <div className="glass-panel px-3 py-1.5 rounded-2xl shadow-md text-xs font-medium text-gray-800 pointer-events-auto flex items-center gap-2 max-w-[240px]">
-            <span className="font-mono bg-blue-50 text-[#0066cc] font-bold px-1.5 py-0.5 rounded border border-blue-100">
+            <span className="font-mono bg-blue-50 text-[#1B7268] font-bold px-1.5 py-0.5 rounded border border-blue-100">
               {selectedResult.store.posCode}
             </span>
             <span className="truncate text-gray-700 font-semibold">{selectedResult.store.storeName}</span>
@@ -59,7 +59,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         href={externalMapUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="absolute top-16 right-4 z-20 glass-panel hover:bg-white text-gray-700 hover:text-[#0066cc] p-2.5 rounded-2xl shadow-md transition-all flex items-center gap-1.5 text-xs font-semibold"
+        className="absolute top-16 right-4 z-20 glass-panel hover:bg-white text-gray-700 hover:text-[#1B7268] p-2.5 rounded-2xl shadow-md transition-all flex items-center gap-1.5 text-xs font-semibold"
         title="Open in Google Maps fullscreen"
       >
         <ExternalLink className="w-3.5 h-3.5" />
@@ -85,7 +85,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               onClick={() => onSelectStore(r.store.id)}
               className={`flex-shrink-0 text-left px-3.5 py-2.5 rounded-2xl text-xs transition-all shadow-md backdrop-blur-xl border ${
                 isSelected
-                  ? 'bg-[#0066cc] text-white border-[#0055bb] ring-2 ring-blue-400/40 shadow-blue-500/20'
+                  ? 'bg-[#1B7268] text-white border-[#0055bb] ring-2 ring-blue-400/40 shadow-blue-500/20'
                   : 'bg-white/90 text-gray-800 border-white/80 hover:bg-white hover:border-gray-300'
               }`}
             >
