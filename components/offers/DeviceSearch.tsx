@@ -154,7 +154,7 @@ export function DeviceSearch() {
           id={listId}
           role="listbox"
           style={{ left: pos.left, top: pos.top, width: pos.width, maxHeight: pos.maxHeight }}
-          className="fixed z-[100] overflow-y-auto rounded-2xl border border-gray-200 bg-white py-1 shadow-2xl dark:border-white/10 dark:bg-[#142830]"
+          className="fixed z-[100] overflow-y-auto rounded-2xl border border-gray-200 bg-white py-1 shadow-2xl dark:border-white/10 dark:bg-[#1A1740]"
         >
           {loadError && <li className="px-4 py-3 text-sm text-red-600">The device list couldn’t be loaded.</li>}
           {!loadError && shown.length === 0 && <li className="px-4 py-3 text-sm text-gray-500">No device matches “{query}”.</li>}

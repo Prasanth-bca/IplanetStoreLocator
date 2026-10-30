@@ -228,7 +228,7 @@ export default function AdminSessionsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F4EDE4] dark:bg-[#0b171c] text-gray-900 dark:text-gray-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F3F1FD] dark:bg-[#0d0b26] text-gray-900 dark:text-gray-100 flex flex-col font-sans">
       {/* Top Header */}
       <header className="sticky top-0 z-30 border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#111115]/80 backdrop-blur-md">
         <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 h-16 flex items-center justify-between gap-3">
@@ -299,7 +299,7 @@ export default function AdminSessionsPage() {
         {/* KPI Dashboard Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Tile 1: Total Online */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#142830] border border-gray-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
+          <div className="p-4 rounded-2xl bg-white dark:bg-[#1A1740] border border-gray-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Total Live Users</span>
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
@@ -316,7 +316,7 @@ export default function AdminSessionsPage() {
           </div>
 
           {/* Tile 2: Online Admins */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#142830] border border-gray-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
+          <div className="p-4 rounded-2xl bg-white dark:bg-[#1A1740] border border-gray-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Admin Sessions</span>
               <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -331,7 +331,7 @@ export default function AdminSessionsPage() {
           </div>
 
           {/* Tile 3: Online Sales */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#142830] border border-gray-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
+          <div className="p-4 rounded-2xl bg-white dark:bg-[#1A1740] border border-gray-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Sales Executives</span>
               <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -346,7 +346,7 @@ export default function AdminSessionsPage() {
           </div>
 
           {/* Tile 4: Device Breakdown */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#142830] border border-gray-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
+          <div className="p-4 rounded-2xl bg-white dark:bg-[#1A1740] border border-gray-200/80 dark:border-white/10 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Device Platform</span>
               <Monitor className="w-4 h-4 text-gray-400" />
@@ -372,7 +372,7 @@ export default function AdminSessionsPage() {
               onClick={() => setTab('live')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition ${
                 tab === 'live'
-                  ? 'bg-white dark:bg-[#1a323b] text-gray-900 dark:text-white shadow-sm'
+                  ? 'bg-white dark:bg-[#25214F] text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'
               }`}
             >
@@ -386,7 +386,7 @@ export default function AdminSessionsPage() {
               onClick={() => setTab('history')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition ${
                 tab === 'history'
-                  ? 'bg-white dark:bg-[#1a323b] text-gray-900 dark:text-white shadow-sm'
+                  ? 'bg-white dark:bg-[#25214F] text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'
               }`}
             >
@@ -408,7 +408,7 @@ export default function AdminSessionsPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search user, IP, or page..."
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#142830] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#1A1740] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
               />
               {search && (
                 <button
@@ -424,7 +424,7 @@ export default function AdminSessionsPage() {
             <select
               value={roleFilter}
               onChange={e => setRoleFilter(e.target.value as any)}
-              className="px-3 py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#142830] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+              className="px-3 py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#1A1740] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
             >
               <option value="ALL">All Roles</option>
               <option value="ADMIN">Admins Only</option>
@@ -435,7 +435,7 @@ export default function AdminSessionsPage() {
               <select
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value as any)}
-                className="px-3 py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#142830] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                className="px-3 py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#1A1740] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="ACTIVE">Active</option>
@@ -457,7 +457,7 @@ export default function AdminSessionsPage() {
 
         {/* Tab 1: Live Users Table */}
         {!loading && tab === 'live' && (
-          <div className="rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#142830] shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#1A1740] shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm border-collapse min-w-[850px]">
                 <thead className="bg-gray-50/90 dark:bg-zinc-900/80 border-b border-gray-200/80 dark:border-white/10 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
@@ -611,7 +611,7 @@ export default function AdminSessionsPage() {
 
         {/* Tab 2: Audit History Table */}
         {!loading && tab === 'history' && (
-          <div className="rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#142830] shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#1A1740] shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm border-collapse min-w-[900px]">
                 <thead className="bg-gray-50/90 dark:bg-zinc-900/80 border-b border-gray-200/80 dark:border-white/10 text-[11px] font-bold text-gray-500 uppercase tracking-wider">

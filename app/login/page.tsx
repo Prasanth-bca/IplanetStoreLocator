@@ -2,10 +2,10 @@
 
 import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, User, Loader2, AlertCircle } from 'lucide-react';
 import { resetCurrentUser } from '@/lib/useCurrentUser';
 import { isAppPage } from '@/lib/access';
-import { LoginBackdrop } from '@/components/LoginBackdrop';
+import { LoginMountains } from '@/components/LoginMountains';
 
 export default function LoginPage() {
   return (
@@ -55,23 +55,17 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-[#F4EDE4] to-indigo-50 dark:from-[#07070a] dark:via-[#0b0c14] dark:to-[#0a0a12] text-gray-900 dark:text-gray-100 px-4 transition-colors duration-200 overflow-hidden">
-      <LoginBackdrop />
-      <div className="relative z-10 w-full max-w-sm">
-        <div className="glass-card rounded-3xl p-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/20 ring-1 ring-white/60 dark:ring-white/10 mb-5">
-            <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#d6d2f7] to-[#8a82e6] dark:from-[#1b1740] dark:to-[#0f0c2e] sm:p-6 lg:p-10">
+      <div className="login-frame relative flex w-full max-w-[1100px] items-center justify-center overflow-hidden sm:rounded-[2rem] shadow-[0_30px_80px_-30px_rgba(60,40,160,0.65)] min-h-screen sm:min-h-[600px] sm:h-[min(640px,88vh)] px-4">
+        <LoginMountains />
 
-          <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-1">
-            iPlanet Store Locator
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            Sign in to continue.
-          </p>
+        <div className="login-glass relative z-10 w-full max-w-[320px] rounded-2xl px-7 py-8 text-white">
+          <h1 className="text-center text-2xl font-semibold tracking-tight">Login</h1>
+          <p className="mt-1 mb-6 text-center text-xs text-white/75">iPlanet Store Locator</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            <label className="relative block">
+              <span className="sr-only">Username</span>
               <input
                 type="text"
                 autoFocus
@@ -82,11 +76,13 @@ function LoginForm() {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 placeholder="Username"
-                className="w-full bg-white/60 dark:bg-white/5 border border-white/70 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition"
+                className="login-field"
               />
-            </div>
+              <User className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white" />
+            </label>
 
-            <div>
+            <label className="relative block">
+              <span className="sr-only">Password</span>
               <input
                 type="password"
                 required
@@ -94,13 +90,14 @@ function LoginForm() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Password"
-                className="w-full bg-white/60 dark:bg-white/5 border border-white/70 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition"
+                className="login-field"
               />
-            </div>
+              <Lock className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white" />
+            </label>
 
             {error && (
-              <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl px-3 py-2">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200/60 bg-red-950/40 px-3 py-2 text-xs text-red-100 backdrop-blur">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -108,15 +105,15 @@ function LoginForm() {
             <button
               type="submit"
               disabled={isSubmitting || !username.trim() || !password}
-              className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#BF4B31] hover:bg-[#A53E26] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold shadow-sm transition"
+              className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-white px-4 py-3 text-sm font-semibold text-[#2f2593] shadow-lg transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Signing in...</span>
                 </>
               ) : (
-                <span>Sign In</span>
+                <span>Login</span>
               )}
             </button>
           </form>

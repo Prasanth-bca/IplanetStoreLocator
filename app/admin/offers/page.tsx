@@ -103,8 +103,8 @@ export default function OffersAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0b171c] pb-16">
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 px-4 py-3.5 backdrop-blur dark:border-white/10 dark:bg-[#0f1e25]/90 sm:px-6 lg:px-8 2xl:px-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0d0b26] pb-16">
+      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 px-4 py-3.5 backdrop-blur dark:border-white/10 dark:bg-[#121030]/90 sm:px-6 lg:px-8 2xl:px-12">
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <Link href="/admin" aria-label="Back to admin" className="rounded-xl bg-gray-100 p-2 text-gray-600 dark:bg-zinc-800 dark:text-gray-300">
@@ -125,7 +125,7 @@ export default function OffersAdminPage() {
 
       <main className="w-full space-y-5 px-4 py-6 sm:px-6 lg:px-8 2xl:px-12">
         {/* Current data */}
-        <section className="space-y-3 rounded-3xl border border-gray-200/80 bg-white p-5 dark:border-white/10 dark:bg-[#142830]">
+        <section className="space-y-3 rounded-3xl border border-gray-200/80 bg-white p-5 dark:border-white/10 dark:bg-[#1A1740]">
           <h2 className="text-base font-bold text-gray-900 dark:text-white">Current offer data</h2>
           {statusError ? (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
@@ -178,7 +178,7 @@ export default function OffersAdminPage() {
         </section>
 
         {/* Upload */}
-        <section className="space-y-4 rounded-3xl border border-gray-200/80 bg-white p-5 dark:border-white/10 dark:bg-[#142830]">
+        <section className="space-y-4 rounded-3xl border border-gray-200/80 bg-white p-5 dark:border-white/10 dark:bg-[#1A1740]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-base font-bold text-gray-900 dark:text-white">
               <Upload className="h-4 w-4 text-blue-600" /> Import the Offers Master (Excel)

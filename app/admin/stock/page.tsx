@@ -319,8 +319,8 @@ export default function StockAdminPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0b171c] pb-32">
-      <header className="bg-white/90 dark:bg-[#0f1e25]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0d0b26] pb-32">
+      <header className="bg-white/90 dark:bg-[#121030]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
         <div className="w-full flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/admin" className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300" aria-label="Back to admin">
@@ -352,7 +352,7 @@ export default function StockAdminPage() {
 
       <main className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-6 space-y-5">
         {/* Store picker + store summary */}
-        <section className="bg-white dark:bg-[#142830] rounded-3xl p-5 border border-gray-200/80 dark:border-white/10 space-y-4">
+        <section className="bg-white dark:bg-[#1A1740] rounded-3xl p-5 border border-gray-200/80 dark:border-white/10 space-y-4">
           <StorePicker stores={stores} value={store} onPick={pickStore} />
 
           {store && (
@@ -388,7 +388,7 @@ export default function StockAdminPage() {
 
         {/* Empty state */}
         {!store && (
-          <section className="bg-white dark:bg-[#142830] rounded-3xl p-10 border border-dashed border-gray-300 dark:border-white/15 text-center">
+          <section className="bg-white dark:bg-[#1A1740] rounded-3xl p-10 border border-dashed border-gray-300 dark:border-white/15 text-center">
             <div className="mx-auto mb-4 w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
               <Package className="w-7 h-7 text-blue-600" />
             </div>
@@ -504,13 +504,13 @@ export default function StockAdminPage() {
             {loading && (
               <div className="space-y-2" aria-busy="true">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="h-[72px] rounded-2xl bg-white dark:bg-[#142830] border border-gray-100 dark:border-white/10 animate-pulse" />
+                  <div key={i} className="h-[72px] rounded-2xl bg-white dark:bg-[#1A1740] border border-gray-100 dark:border-white/10 animate-pulse" />
                 ))}
               </div>
             )}
 
             {!loading && tab === 'stock' && grouped.length === 0 && (
-              <div className="bg-white dark:bg-[#142830] rounded-2xl p-8 text-center border border-gray-100 dark:border-white/10">
+              <div className="bg-white dark:bg-[#1A1740] rounded-2xl p-8 text-center border border-gray-100 dark:border-white/10">
                 <p className="text-sm text-gray-500">{rows.length === 0 ? 'No products in the catalogue yet.' : 'No products match your filters.'}</p>
                 {rows.length > 0 && (
                   <button
@@ -530,7 +530,7 @@ export default function StockAdminPage() {
             {!loading && tab === 'stock' && (
               <>
                 {view === 'list' ? (
-                  <div className="overflow-x-auto rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#142830] shadow-sm">
+                  <div className="overflow-x-auto rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#1A1740] shadow-sm">
                     <table className="w-full text-left text-sm border-collapse min-w-[960px]">
                       <thead className="bg-gray-50/90 dark:bg-zinc-900/80 border-b border-gray-200/80 dark:border-white/10 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                         <tr>
@@ -669,7 +669,7 @@ export default function StockAdminPage() {
                             return (
                               <li
                                 key={r.productId}
-                                className={`rounded-3xl border bg-white dark:bg-[#142830] overflow-hidden flex flex-col transition ${
+                                className={`rounded-3xl border bg-white dark:bg-[#1A1740] overflow-hidden flex flex-col transition ${
                                   changed ? 'border-blue-400 ring-2 ring-blue-500/15' : 'border-gray-200/80 dark:border-white/10'
                                 }`}
                               >
@@ -743,7 +743,7 @@ export default function StockAdminPage() {
             )}
 
             {!loading && tab === 'history' && (
-              <div className="bg-white dark:bg-[#142830] rounded-2xl border border-gray-100 dark:border-white/10 divide-y divide-gray-100 dark:divide-white/5 overflow-hidden">
+              <div className="bg-white dark:bg-[#1A1740] rounded-2xl border border-gray-100 dark:border-white/10 divide-y divide-gray-100 dark:divide-white/5 overflow-hidden">
                 {history.length === 0 && <p className="p-8 text-sm text-gray-500 text-center">No stock movements recorded for this store yet.</p>}
                 {history.map(m => (
                   <div key={m.id} className="px-4 py-3 flex items-center justify-between gap-3">
@@ -779,7 +779,7 @@ export default function StockAdminPage() {
         )}
 
         {/* Bulk import (collapsible) */}
-        <section className="bg-white dark:bg-[#142830] rounded-3xl border border-gray-200/80 dark:border-white/10 overflow-hidden">
+        <section className="bg-white dark:bg-[#1A1740] rounded-3xl border border-gray-200/80 dark:border-white/10 overflow-hidden">
           <button
             onClick={() => setImportOpen(o => !o)}
             className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left"
@@ -957,7 +957,7 @@ export default function StockAdminPage() {
 
       {/* Sticky save bar */}
       {store && dirty.length > 0 && tab === 'stock' && (
-        <div className="fixed bottom-0 inset-x-0 z-40 border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[#0f1e25]/95 backdrop-blur animate-fadeInUp">
+        <div className="fixed bottom-0 inset-x-0 z-40 border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[#121030]/95 backdrop-blur animate-fadeInUp">
           <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-3 flex flex-wrap items-center gap-3">
             <div className="text-sm font-bold text-gray-900 dark:text-white mr-auto">
               {dirty.length} unsaved change{dirty.length === 1 ? '' : 's'}

@@ -71,8 +71,8 @@ export default function UsersAdminPage() {
   }, [toast]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0b171c] pb-16">
-      <header className="bg-white/90 dark:bg-[#0f1e25]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0d0b26] pb-16">
+      <header className="bg-white/90 dark:bg-[#121030]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
         <div className="w-full flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/admin" className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300" aria-label="Back to admin">
@@ -113,13 +113,13 @@ export default function UsersAdminPage() {
         {loading && (
           <div className="space-y-2" aria-busy="true">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-2xl bg-white dark:bg-[#142830] border border-gray-100 dark:border-white/10 animate-pulse" />
+              <div key={i} className="h-16 rounded-2xl bg-white dark:bg-[#1A1740] border border-gray-100 dark:border-white/10 animate-pulse" />
             ))}
           </div>
         )}
 
         {!loading && users.length > 0 && (
-          <div className="bg-white dark:bg-[#142830] rounded-3xl border border-gray-200/80 dark:border-white/10 overflow-hidden">
+          <div className="bg-white dark:bg-[#1A1740] rounded-3xl border border-gray-200/80 dark:border-white/10 overflow-hidden">
             <div className="hidden md:grid grid-cols-[minmax(0,1.6fr)_120px_120px_70px_130px] gap-4 px-5 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 border-b border-gray-100 dark:border-white/10">
               <span>Person</span>
               <span>Role</span>
@@ -232,7 +232,7 @@ function UserDialog({ dialog, me, onClose, onChanged }: { dialog: Dialog; me?: s
 
   const shell = (title: string, body: React.ReactNode, footer: React.ReactNode) => (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] sm:p-4 animate-fadeIn" onClick={() => !busy && onClose()} role="dialog" aria-modal="true" aria-label={title}>
-      <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#142830] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/10 shadow-2xl animate-fadeInUp">
+      <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#1A1740] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/10 shadow-2xl animate-fadeInUp">
         <div className="flex items-center justify-between px-5 pt-5">
           <h2 className="text-base font-extrabold text-gray-950 dark:text-white">{title}</h2>
           <button type="button" onClick={onClose} aria-label="Close" className="p-2 -mr-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500"><X className="w-5 h-5" /></button>

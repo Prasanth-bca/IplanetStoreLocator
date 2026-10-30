@@ -154,7 +154,7 @@ export function CalculatorModal({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-label="Calculator"
-        className="w-full max-w-[320px] rounded-3xl border border-gray-200 bg-gray-50 p-4 shadow-2xl outline-none dark:border-white/10 dark:bg-[#142830]"
+        className="w-full max-w-[320px] rounded-3xl border border-gray-200 bg-gray-50 p-4 shadow-2xl outline-none dark:border-white/10 dark:bg-[#1A1740]"
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-extrabold tracking-tight text-gray-900 dark:text-white">Calculator</h2>
