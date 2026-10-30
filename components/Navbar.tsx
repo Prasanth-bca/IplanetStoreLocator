@@ -3,14 +3,26 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Settings, LogOut, Home } from 'lucide-react';
+import { Settings, LogOut, Home, Calculator, ExternalLink } from 'lucide-react';
+import { CalculatorModal } from '@/components/CalculatorModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { resetCurrentUser, useCurrentUser } from '@/lib/useCurrentUser';
+
+const QUICK_LINKS = [
+  { label: 'iPlanet.One', href: 'https://iplanet.one/' },
+  { label: 'Apple.In', href: 'https://www.apple.com/in/?cid-oas-in-domains-apple.in/' },
+  { label: 'CRM', href: 'https://carecrm.iplanet.one/#/authentication/signin' },
+  { label: 'GSX', href: 'https://idmsa.apple.com/IDMSWebAuth/signin?appIdKey=56d0803270308d5042fac8647e21e41e5028903d62a009366450bb6b52a32bf3&rv=1&relayState=Lw==&language=GB-EN-' },
+];
+
+const BAR_BTN =
+  'inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-blue-200 transition-all duration-150 whitespace-nowrap';
 
 export const Navbar: React.FC = () => {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(false);
   const { user } = useCurrentUser();
 
   useEffect(() => {
@@ -35,7 +47,7 @@ export const Navbar: React.FC = () => {
           : 'bg-white/70 dark:bg-[#0e0e11]/70 backdrop-blur-md border-b border-transparent'
       }`}
     >
-      <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 h-16 flex items-center justify-between gap-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 min-h-16 py-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         {/* Brand */}
         <Link href="/locator" className="flex items-center gap-3 group shrink-0">
           {/* Apple-style logo mark */}
@@ -64,8 +76,23 @@ export const Navbar: React.FC = () => {
           </div>
         </Link>
 
-        {/* Right: links, one aligned group */}
+        {/* Left: quick links to the other tools, each opens in a new tab. Own row on small screens. */}
+        <nav aria-label="Quick links" className="order-last lg:order-none flex w-full lg:w-auto lg:flex-1 items-center gap-2 overflow-x-auto lg:overflow-visible">
+          {QUICK_LINKS.map((l) => (
+            <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className={BAR_BTN}>
+              {l.label}
+              <ExternalLink className="w-3 h-3 opacity-60" />
+            </a>
+          ))}
+        </nav>
+
+        {/* Right: calculator, links, one aligned group */}
         <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setCalcOpen(true)} className={BAR_BTN} aria-haspopup="dialog" aria-label="Calculator" title="Calculator">
+            <Calculator className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Calculator</span>
+          </button>
+
           <Link
             href="/"
             className="inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-zinc-800/90 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-xl border border-gray-200/80 dark:border-zinc-700 hover:border-blue-200 transition-all duration-150"
@@ -96,6 +123,7 @@ export const Navbar: React.FC = () => {
           <ThemeToggle />
         </div>
       </div>
+      {calcOpen && <CalculatorModal onClose={() => setCalcOpen(false)} />}
     </header>
   );
 };
