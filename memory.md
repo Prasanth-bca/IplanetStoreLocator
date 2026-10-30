@@ -184,10 +184,64 @@ Enforced at the Edge in [`middleware.ts`](file:///d:/iPlanet%20AI%20Store%20Loca
 5. **General CLI Importer (`scripts/import_erp_stock.js`)**:
    - Command flags: `--store <POS>`, `--stores <POS1,POS2>`, `--all`, `--dry-run`, `--clean`, `--batch <size>`.
 
-### Planned 8-Column Stock Page Layout:
+### Live 8-Column Stock Page Layout (Implemented):
 Matches the Excel column order directly:
 `Store` | `Product` | `Segment` | `Class` | `SubClass` | `Color` | `SerialNumber` | `Stock`
 
 ### Database & Network Configuration Notes:
 - **Neon Serverless Host**: `ep-wispy-hat-b79l1c19-pooler.c-13.us-east-1.aws.neon.tech:5432`
 - **DNS Resolution**: `dns.setDefaultResultOrder('ipv4first')` and public DNS resolvers (`8.8.8.8`, `1.1.1.1`) ensure connection stability when local mobile hotspot or IPv6 DNS routes block cloud endpoints.
+
+---
+
+## 10. Real-Time Live User Monitoring & Login Session Audit Architecture
+
+### Overview:
+Comprehensive user activity tracking, real-time live presence detection, and historical login session audit reporting for both **Admins** and **Sales Executives**.
+
+### Database Model (`UserSession` / `user_sessions`):
+- **Primary Key**: `id` (cuid)
+- **Identity Snapshot**: `userId` (FK to User, Cascade), `username`, `name`, `role` (`ADMIN` / `SALES`)
+- **Network & Device**:
+  - `ipAddress` (parsed from `x-forwarded-for` or `x-real-ip`)
+  - `userAgent` (full client header)
+  - `deviceType` (`Desktop` / `Mobile` / `Tablet` via `lib/userAgent.ts`)
+  - `browser` (`Chrome`, `Safari`, `Edge`, `Firefox`, `Opera`)
+  - `os` (`Windows`, `macOS`, `iOS`, `Android`, `Linux`)
+- **Live Activity Tracking**:
+  - `currentPath` (e.g. `/locator`, `/admin/stock`, `/admin/users`, `/my-leads`)
+  - `status` (`ACTIVE`, `LOGGED_OUT`, `REVOKED`, `FAILED`)
+  - `loginAt` (timestamp of sign-in attempt)
+  - `lastActiveAt` (updated every 45s via client heartbeat)
+  - `endedAt` (timestamp when user logged out or session was revoked)
+  - `failReason` (e.g. `User not found`, `Incorrect password`, `Account disabled`)
+
+### Live Presence Criteria:
+- 🟢 **Online**: `lastActiveAt` within the last **2 minutes** and `endedAt == null`.
+- 🟡 **Idle (Away)**: `lastActiveAt` between **2 and 10 minutes** ago.
+- ⚪ **Offline / Terminated**: `lastActiveAt` > 10 minutes ago, or `status != 'ACTIVE'`.
+
+### Client-Side Heartbeat (`components/UserHeartbeat.tsx`):
+- Mounted globally in `RootLayout` (`app/layout.tsx`).
+- Automatically sends a background ping to `POST /api/me/heartbeat` every 45 seconds while the browser tab is focused (`document.visibilityState === 'visible'`).
+- Sends the active route pathname so admins see live screen navigation in real time.
+- Handles remote revocation: if the server responds with 403 Revoked, immediately redirects to `/login` with an alert message.
+
+### Session Lifecycle & Security:
+1. **Login (`app/api/login/route.ts`)**:
+   - Parses User-Agent and client IP.
+   - Logs failed login attempts with security audit reasons.
+   - Creates active session in `user_sessions` on success and embeds `sid` into the signed JWT session cookie.
+2. **Logout (`app/api/logout/route.ts`)**:
+   - Marks session as `LOGGED_OUT` and sets `endedAt = NOW()`.
+   - Clears session cookie.
+3. **Remote Force Termination (`POST /api/admin/sessions`)**:
+   - One-click admin action to terminate any suspicious or obsolete session.
+   - Sets `status = 'REVOKED'` and increments `User.tokenVersion` to immediately invalidate authentication across all devices.
+
+### Monitoring Desk UI (`/admin/sessions`):
+- Accessible via the **"Monitoring"** button on the Master Admin Navbar and Users page.
+- **KPI Summary Cards**: Total Live Users, Active Admins, Active Sales Staff, Device Breakdown (Desktop vs Mobile).
+- **Tab 1: Live Users Table**: Real-time table showing live presence badge, current screen, device/IP, connection duration, and instant "Terminate" action. Auto-refreshes every 10 seconds.
+- **Tab 2: Audit History Table**: Historical log of all sessions, failed attempts, and calculated durations.
+- **CSV Report Export (`/api/admin/sessions/export`)**: One-click download of all session records for management and security reporting.
