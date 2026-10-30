@@ -1046,3 +1046,17 @@ body::after {
 :root[data-palette="navy-crimson"] .login-frame { --ls-sun: rgb(var(--pal-accent-a) / 0.75); --ls-btn-bg: linear-gradient(135deg, rgb(var(--pal-accent-a)), rgb(var(--pal-accent-b))); --ls-btn-fg: #fff; }
 .login-submit { background: var(--ls-btn-bg, #fff); color: var(--ls-btn-fg, rgb(var(--pal-brand-dark))); }
 .login-submit:hover:not(:disabled) { filter: brightness(1.06); }
+
+/* sign-in photo: the picture, tinted with the active palette so the glass card stays readable */
+.login-photo { object-position: 28% 40%; transform-origin: 30% 40%; animation: login-photo-zoom 26s ease-in-out infinite alternate; }
+@keyframes login-photo-zoom { from { transform: scale(1.02); } to { transform: scale(1.1); } }
+.login-photo-tint {
+  background:
+    linear-gradient(100deg, rgb(var(--pal-ink) / 0.05) 0%, rgb(var(--pal-brand) / 0.34) 55%, rgb(var(--pal-ink) / 0.72) 100%),
+    linear-gradient(0deg, rgb(var(--pal-ink) / 0.72), transparent 55%);
+}
+@media (prefers-reduced-motion: reduce) { .login-photo { animation: none !important; } }
+
+.login-title { animation: login-rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both; }
+@media (max-width: 1023px) { .login-photo { object-position: 30% 0%; } }
+@media (prefers-reduced-motion: reduce) { .login-title { animation: none !important; } }

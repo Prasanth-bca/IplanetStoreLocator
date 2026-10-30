@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, User, Loader2, AlertCircle } from 'lucide-react';
 import { resetCurrentUser } from '@/lib/useCurrentUser';
 import { isAppPage } from '@/lib/access';
-import { LoginMountains } from '@/components/LoginMountains';
 
 export default function LoginPage() {
   return (
@@ -55,13 +54,27 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pal-tint-1 to-pal-brand-soft dark:from-pal-card-dark dark:to-pal-page-dark sm:p-6 lg:p-10">
-      <div className="login-frame relative flex w-full max-w-[1100px] items-center justify-center overflow-hidden sm:rounded-[2rem] min-h-screen sm:min-h-[600px] sm:h-[min(640px,88vh)] px-4">
-        <LoginMountains />
+    <div className="login-frame relative min-h-screen w-full overflow-hidden">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/images/login-hero.jpg" alt="" aria-hidden className="login-photo absolute inset-0 h-full w-full object-cover" />
+      <div aria-hidden className="login-photo-tint absolute inset-0" />
 
-        <div className="login-glass relative z-10 w-full max-w-[320px] rounded-2xl px-7 py-8 text-white">
-          <h1 className="text-center text-2xl font-semibold tracking-tight">Login</h1>
-          <p className="mt-1 mb-6 text-center text-xs text-white/75">iPlanet Store Locator</p>
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1600px] flex-col justify-end gap-6 px-6 py-8 sm:px-10 lg:grid lg:grid-cols-2 lg:gap-12 lg:px-16 lg:py-14">
+        {/* title: sits low on every screen so the agent's face stays clear */}
+        <header className="login-title flex flex-col justify-end text-white">
+          <span className="mb-3 inline-flex w-fit items-center gap-2 rounded-full border border-white/40 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md">
+            iPlanet · AI Store Locator
+          </span>
+          <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight drop-shadow-[0_2px_18px_rgba(0,0,0,0.45)] sm:text-5xl lg:text-6xl xl:text-7xl">
+            Customer Experience Centre
+          </h1>
+          <p className="mt-3 max-w-md text-sm text-white/85 drop-shadow sm:text-base">Sign in to find stores, check stock and share offers with customers.</p>
+        </header>
+
+        <div className="flex items-center justify-center lg:justify-end lg:pr-[4%]">
+          <div className="login-glass w-full max-w-[340px] rounded-2xl px-7 py-8 text-white">
+            <h2 className="text-center text-2xl font-semibold tracking-tight">Login</h2>
+            <p className="mt-1 mb-6 text-center text-xs text-white/75">Use your iPlanet account</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="relative block">
@@ -117,6 +130,7 @@ function LoginForm() {
               )}
             </button>
           </form>
+          </div>
         </div>
       </div>
     </div>
