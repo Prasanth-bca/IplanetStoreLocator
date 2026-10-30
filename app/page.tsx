@@ -106,7 +106,7 @@ function DestinationCard({ d, large = false }: { d: Destination; large?: boolean
   return (
     <Link
       href={d.href}
-      className="group relative flex flex-col rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#1A1740] p-6 transition hover:-translate-y-0.5 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      className="group relative flex flex-col rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-pal-card-dark p-6 transition hover:-translate-y-0.5 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
       style={{ textDecoration: 'none' }}
     >
       <div className={`${large ? 'w-14 h-14' : 'w-12 h-12'} rounded-2xl flex items-center justify-center ${d.tint}`}>
@@ -137,8 +137,8 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F1FD] dark:bg-[#0d0b26] text-gray-900 dark:text-gray-100">
-      <header className="border-b border-black/5 dark:border-white/10 bg-white/70 dark:bg-[#121030]/70 backdrop-blur-md">
+    <div className="min-h-screen bg-pal-page dark:bg-pal-page-dark text-gray-900 dark:text-gray-100">
+      <header className="border-b border-black/5 dark:border-white/10 bg-white/70 dark:bg-pal-bar-dark/70 backdrop-blur-md">
         <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 h-16 flex items-center justify-between gap-4">
           <div className="flex flex-col leading-none">
             <span className="text-[17px] font-extrabold tracking-tight text-gray-950 dark:text-white">iPlanet</span>
@@ -199,7 +199,7 @@ export default function HomePage() {
           {loading ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-44 rounded-3xl bg-white dark:bg-[#1A1740] border border-gray-100 dark:border-white/10 animate-pulse" />
+                <div key={i} className="h-44 rounded-3xl bg-white dark:bg-pal-card-dark border border-gray-100 dark:border-white/10 animate-pulse" />
               ))}
             </div>
           ) : (

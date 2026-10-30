@@ -57,7 +57,7 @@ export function StorePicker<T extends StoreLite>({ stores, value, onPick }: { st
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-2 w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1A1740] shadow-xl overflow-hidden">
+        <div className="absolute z-30 mt-2 w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-pal-card-dark shadow-xl overflow-hidden">
           <div className="relative p-2 border-b border-gray-100 dark:border-white/10">
             <Search className="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input

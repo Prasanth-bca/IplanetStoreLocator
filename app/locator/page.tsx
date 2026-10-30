@@ -96,7 +96,7 @@ export default function LocatorPage() {
 
   return (
     <OffersProvider>
-    <div className="min-h-screen flex flex-col bg-[#F3F1FD] dark:bg-[#0d0b26] text-[#1F1B45] dark:text-[#F3F1FD] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-pal-page dark:bg-pal-page-dark text-pal-ink dark:text-pal-page transition-colors duration-200">
       <Navbar />
 
       {/* Main Content Area: offers on the left; finder, results and map on the right */}
@@ -135,7 +135,7 @@ export default function LocatorPage() {
         {/* Informational banner when PIN covers multiple areas or fallback notice */}
         {searchResponse?.notice && (
           <div className="mb-6 p-4 glass-panel rounded-2xl border border-blue-200/80 dark:border-blue-800/60 text-blue-900 dark:text-blue-200 text-xs sm:text-sm flex items-start gap-3 shadow-xs">
-            <Sparkles className="w-4 h-4 text-[#4A3DC0] dark:text-[#8E82EB] shrink-0 mt-0.5" />
+            <Sparkles className="w-4 h-4 text-pal-brand dark:text-pal-brand-light shrink-0 mt-0.5" />
             <p className="font-medium text-blue-950 dark:text-blue-100">{searchResponse.notice}</p>
           </div>
         )}
@@ -147,26 +147,26 @@ export default function LocatorPage() {
             <div className="xl:col-span-7 flex flex-col gap-5">
               <div className="flex items-center justify-between gap-4 pb-3 border-b border-black/[0.08] dark:border-white/[0.1]">
                 <div className="flex items-center gap-2 shrink-0">
-                  <StoreIcon className="w-4 h-4 text-[#4A3DC0] dark:text-[#8E82EB]" />
+                  <StoreIcon className="w-4 h-4 text-pal-brand dark:text-pal-brand-light" />
                   <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-800 dark:text-gray-200">
                     {searchResponse.totalFound} {activeCategory === 'Care' ? 'Care & Service Centre' : 'Retail Store'}{searchResponse.totalFound === 1 ? '' : 's'} Found
                   </h2>
                 </div>
                 {searchResponse.detectedLocation?.name && (
                   <span className="text-xs text-gray-500 dark:text-gray-400 min-w-0 flex items-center gap-1">
-                    <Navigation2 className="w-3 h-3 shrink-0 text-[#4A3DC0] dark:text-[#8E82EB]" />
+                    <Navigation2 className="w-3 h-3 shrink-0 text-pal-brand dark:text-pal-brand-light" />
                     <span className="truncate">Near: <strong className="text-gray-800 dark:text-gray-200">{searchResponse.detectedLocation.name}</strong></span>
                   </span>
                 )}
               </div>
 
               {isLoading ? (
-                <div className="bg-white dark:bg-[#1A1740] rounded-3xl p-12 text-center border border-black/8 dark:border-white/10 shadow-sm flex flex-col items-center justify-center gap-3">
-                  <Loader2 className="w-8 h-8 text-[#4A3DC0] dark:text-[#8E82EB] animate-spin" />
+                <div className="bg-white dark:bg-pal-card-dark rounded-3xl p-12 text-center border border-black/8 dark:border-white/10 shadow-sm flex flex-col items-center justify-center gap-3">
+                  <Loader2 className="w-8 h-8 text-pal-brand dark:text-pal-brand-light animate-spin" />
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Calculating nearest stores & routes...</p>
                 </div>
               ) : searchResponse.results.length === 0 ? (
-                <div className="bg-white dark:bg-[#1A1740] rounded-3xl p-12 text-center border border-black/8 dark:border-white/10 shadow-sm">
+                <div className="bg-white dark:bg-pal-card-dark rounded-3xl p-12 text-center border border-black/8 dark:border-white/10 shadow-sm">
                   <ShieldAlert className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
                     No iPlanet {activeCategory === 'Care' ? 'Care & Service Centre' : 'Retail Store'}s found

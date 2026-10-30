@@ -154,8 +154,8 @@ export function LeadHistoryView({ scope }: { scope: LeadScope }) {
   const heading = mode === 'day' ? fmtLongDay(day) : fmtMonthLong(month);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0d0b26] pb-16">
-      <header className="bg-white/90 dark:bg-[#121030]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
+    <div className="min-h-screen bg-gray-50 dark:bg-pal-page-dark pb-16">
+      <header className="bg-white/90 dark:bg-pal-bar-dark/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
         <div className="w-full flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Link href={isAll ? '/admin' : '/'} className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300" aria-label={isAll ? 'Back to admin' : 'Back to home'}>
@@ -176,7 +176,7 @@ export function LeadHistoryView({ scope }: { scope: LeadScope }) {
 
       <main className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-6 space-y-5">
         {/* Period picker */}
-        <section className="bg-white dark:bg-[#1A1740] rounded-3xl p-5 border border-gray-200/80 dark:border-white/10 space-y-4">
+        <section className="bg-white dark:bg-pal-card-dark rounded-3xl p-5 border border-gray-200/80 dark:border-white/10 space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="inline-flex p-1 rounded-xl bg-gray-200/70 dark:bg-zinc-800" role="group" aria-label="Period type">
               {(['day', 'month'] as const).map(m => (
@@ -284,13 +284,13 @@ export function LeadHistoryView({ scope }: { scope: LeadScope }) {
         {loading && (
           <div className="space-y-2" aria-busy="true">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-2xl bg-white dark:bg-[#1A1740] border border-gray-100 dark:border-white/10 animate-pulse" />
+              <div key={i} className="h-16 rounded-2xl bg-white dark:bg-pal-card-dark border border-gray-100 dark:border-white/10 animate-pulse" />
             ))}
           </div>
         )}
 
         {error && !loading && (
-          <div className="bg-white dark:bg-[#1A1740] rounded-2xl p-8 text-center border border-red-200 dark:border-red-900/50">
+          <div className="bg-white dark:bg-pal-card-dark rounded-2xl p-8 text-center border border-red-200 dark:border-red-900/50">
             <p className="text-sm text-red-600 mb-3">{error}</p>
             <button onClick={() => setReloadKey(k => k + 1)} className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold">
               Try again
@@ -299,7 +299,7 @@ export function LeadHistoryView({ scope }: { scope: LeadScope }) {
         )}
 
         {!loading && !error && data && data.total === 0 && (
-          <div className="bg-white dark:bg-[#1A1740] rounded-3xl p-10 border border-dashed border-gray-300 dark:border-white/15 text-center">
+          <div className="bg-white dark:bg-pal-card-dark rounded-3xl p-10 border border-dashed border-gray-300 dark:border-white/15 text-center">
             <div className="mx-auto mb-3 w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
               <Users className="w-6 h-6 text-emerald-600" />
             </div>
@@ -315,7 +315,7 @@ export function LeadHistoryView({ scope }: { scope: LeadScope }) {
             {/* Breakdowns */}
             <section className={`grid gap-4 ${mode === 'month' ? 'lg:grid-cols-2' : ''}`}>
               {mode === 'month' && (
-                <div className="bg-white dark:bg-[#1A1740] rounded-3xl p-5 border border-gray-200/80 dark:border-white/10">
+                <div className="bg-white dark:bg-pal-card-dark rounded-3xl p-5 border border-gray-200/80 dark:border-white/10">
                   <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">By day</h3>
                   <ul className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
                     {Array.from({ length: daysInMonth(month) }, (_, i) => {
@@ -348,7 +348,7 @@ export function LeadHistoryView({ scope }: { scope: LeadScope }) {
                 </div>
               )}
 
-              <div className="bg-white dark:bg-[#1A1740] rounded-3xl p-5 border border-gray-200/80 dark:border-white/10">
+              <div className="bg-white dark:bg-pal-card-dark rounded-3xl p-5 border border-gray-200/80 dark:border-white/10">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">By store</h3>
                 <div className="flex flex-wrap gap-2">
                   {data.byStore.map(s => (
@@ -408,9 +408,9 @@ export function LeadHistoryView({ scope }: { scope: LeadScope }) {
               )}
 
               {visible.length === 0 ? (
-                <div className="bg-white dark:bg-[#1A1740] rounded-2xl p-8 text-center border border-gray-100 dark:border-white/10 text-sm text-gray-500">No leads match your search.</div>
+                <div className="bg-white dark:bg-pal-card-dark rounded-2xl p-8 text-center border border-gray-100 dark:border-white/10 text-sm text-gray-500">No leads match your search.</div>
               ) : (
-                <div className="bg-white dark:bg-[#1A1740] rounded-3xl border border-gray-200/80 dark:border-white/10 overflow-hidden">
+                <div className="bg-white dark:bg-pal-card-dark rounded-3xl border border-gray-200/80 dark:border-white/10 overflow-hidden">
                   <div className="hidden md:grid grid-cols-[96px_minmax(0,1.3fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1.2fr)] gap-4 px-5 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 bg-gray-50/80 dark:bg-zinc-800/60 border-b border-gray-100 dark:border-white/10">
                     <span>{mode === 'month' ? 'Date · time' : 'Time'}</span>
                     <span>Customer</span>

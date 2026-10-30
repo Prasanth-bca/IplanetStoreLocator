@@ -210,8 +210,8 @@ export default function ProductsAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0d0b26] pb-16">
-      <header className="bg-white/90 dark:bg-[#121030]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
+    <div className="min-h-screen bg-gray-50 dark:bg-pal-page-dark pb-16">
+      <header className="bg-white/90 dark:bg-pal-bar-dark/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
         <div className="w-full flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/admin" className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300" aria-label="Back to admin">
@@ -292,13 +292,13 @@ export default function ProductsAdminPage() {
         {loading && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-56 rounded-3xl bg-white dark:bg-[#1A1740] border border-gray-100 dark:border-white/10 animate-pulse" />
+              <div key={i} className="h-56 rounded-3xl bg-white dark:bg-pal-card-dark border border-gray-100 dark:border-white/10 animate-pulse" />
             ))}
           </div>
         )}
 
         {!loading && visible.length === 0 && (
-          <div className="bg-white dark:bg-[#1A1740] rounded-3xl p-10 border border-dashed border-gray-300 dark:border-white/15 text-center">
+          <div className="bg-white dark:bg-pal-card-dark rounded-3xl p-10 border border-dashed border-gray-300 dark:border-white/15 text-center">
             <div className="mx-auto mb-3 w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
               <Package className="w-6 h-6 text-blue-600" />
             </div>
@@ -328,7 +328,7 @@ export default function ProductsAdminPage() {
 
         {/* Products: list (default) or cards */}
         {!loading && visible.length > 0 && view === 'list' && (
-          <div className="bg-white dark:bg-[#1A1740] rounded-3xl border border-gray-200/80 dark:border-white/10 overflow-hidden">
+          <div className="bg-white dark:bg-pal-card-dark rounded-3xl border border-gray-200/80 dark:border-white/10 overflow-hidden">
             <div className="hidden md:grid grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_90px_90px_130px_96px] gap-4 px-5 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 border-b border-gray-100 dark:border-white/10">
               <span>Product</span>
               <span>SKU</span>
@@ -386,7 +386,7 @@ export default function ProductsAdminPage() {
             {visible.map(p => (
               <article
                 key={p.id}
-                className={`rounded-3xl border bg-white dark:bg-[#1A1740] overflow-hidden transition hover:shadow-lg ${
+                className={`rounded-3xl border bg-white dark:bg-pal-card-dark overflow-hidden transition hover:shadow-lg ${
                   p.active ? 'border-gray-200/80 dark:border-white/10' : 'border-dashed border-gray-300 dark:border-white/15'
                 }`}
               >
@@ -401,11 +401,11 @@ export default function ProductsAdminPage() {
                 </div>
 
                 <div className={`grid grid-cols-2 gap-px bg-gray-100 dark:bg-white/5 border-y border-gray-100 dark:border-white/5 ${p.active ? '' : 'opacity-55'}`}>
-                  <div className="bg-white dark:bg-[#1A1740] px-5 py-3">
+                  <div className="bg-white dark:bg-pal-card-dark px-5 py-3">
                     <div className="text-xl font-extrabold text-gray-900 dark:text-white leading-none">{p.totalUnits}</div>
                     <div className="text-[11px] font-semibold text-gray-500 mt-1">Units across stores</div>
                   </div>
-                  <div className="bg-white dark:bg-[#1A1740] px-5 py-3">
+                  <div className="bg-white dark:bg-pal-card-dark px-5 py-3">
                     <div className="text-xl font-extrabold text-gray-900 dark:text-white leading-none">{p.storesInStock}</div>
                     <div className="text-[11px] font-semibold text-gray-500 mt-1">Stores stocking</div>
                   </div>
@@ -444,7 +444,7 @@ export default function ProductsAdminPage() {
           <form
             onSubmit={submit}
             onClick={e => e.stopPropagation()}
-            className="bg-white dark:bg-[#1A1740] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/10 shadow-2xl animate-fadeInUp"
+            className="bg-white dark:bg-pal-card-dark w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/10 shadow-2xl animate-fadeInUp"
           >
             <div className="flex items-center justify-between px-5 pt-5">
               <h2 className="text-base font-extrabold text-gray-950 dark:text-white">{editing === 'new' ? 'Add product' : 'Edit product'}</h2>
@@ -534,7 +534,7 @@ export default function ProductsAdminPage() {
       {/* Delete confirmation */}
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px] p-4 animate-fadeIn" onClick={() => setDeleting(null)} role="alertdialog" aria-modal="true">
-          <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#1A1740] w-full max-w-sm rounded-3xl border border-gray-200 dark:border-white/10 shadow-2xl p-6 animate-fadeInUp">
+          <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-pal-card-dark w-full max-w-sm rounded-3xl border border-gray-200 dark:border-white/10 shadow-2xl p-6 animate-fadeInUp">
             <div className="w-11 h-11 rounded-2xl bg-red-50 dark:bg-red-950/40 flex items-center justify-center mb-3">
               <Trash2 className="w-5 h-5 text-red-600" />
             </div>

@@ -25,6 +25,7 @@ import {
   Users,
   Tag
 } from 'lucide-react';
+import { PalettePicker } from '@/components/PalettePicker';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ViewToggle, useViewMode } from '@/components/ViewToggle';
 
@@ -251,9 +252,9 @@ export default function AdminPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F3F1FD] dark:bg-[#0d0b26] text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <div className="min-h-screen bg-pal-page dark:bg-pal-page-dark text-gray-900 dark:text-gray-100 transition-colors duration-200">
       {/* Admin Navbar */}
-      <header className="bg-white dark:bg-[#121030] border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-4 sticky top-0 z-40 shadow-xs">
+      <header className="bg-white dark:bg-pal-bar-dark border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-4 sticky top-0 z-40 shadow-xs">
         <div className="w-full flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
@@ -277,7 +278,8 @@ export default function AdminPage() {
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <PalettePicker />
             <ThemeToggle />
 
             <button
@@ -345,7 +347,7 @@ export default function AdminPage() {
 
       <main className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-8 space-y-8">
         {/* Bulk Import Card */}
-        <section className="bg-white dark:bg-[#1A1740] rounded-3xl p-6 border border-gray-200/80 dark:border-white/10 shadow-sm">
+        <section className="bg-white dark:bg-pal-card-dark rounded-3xl p-6 border border-gray-200/80 dark:border-white/10 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
             <div>
               <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -416,9 +418,9 @@ export default function AdminPage() {
         </section>
 
         {/* Master Registry Table Card */}
-        <section className="bg-white dark:bg-[#1A1740] rounded-3xl border border-gray-200/80 dark:border-white/10 shadow-sm overflow-hidden">
+        <section className="bg-white dark:bg-pal-card-dark rounded-3xl border border-gray-200/80 dark:border-white/10 shadow-sm overflow-hidden">
           {/* CATEGORY TOGGLE BAR ABOVE TABLE */}
-          <div className="px-6 pt-6 pb-4 border-b border-gray-200/80 dark:border-white/10 bg-gradient-to-r from-gray-50/50 to-white dark:from-[#131317] dark:to-[#1A1740] flex flex-wrap items-center justify-between gap-4">
+          <div className="px-6 pt-6 pb-4 border-b border-gray-200/80 dark:border-white/10 bg-gradient-to-r from-gray-50/50 to-white dark:from-[#131317] dark:to-pal-card-dark flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
@@ -645,7 +647,7 @@ export default function AdminPage() {
                 return (
                   <article
                     key={store.id}
-                    className="rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#1A1740] overflow-hidden flex flex-col transition hover:shadow-lg"
+                    className="rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-pal-card-dark overflow-hidden flex flex-col transition hover:shadow-lg"
                   >
                     <div className="p-5 flex items-start gap-4">
                       <div
@@ -675,11 +677,11 @@ export default function AdminPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-px bg-gray-100 dark:bg-white/5 border-y border-gray-100 dark:border-white/5">
-                      <div className="bg-white dark:bg-[#1A1740] px-5 py-3">
+                      <div className="bg-white dark:bg-pal-card-dark px-5 py-3">
                         <div className="text-sm font-extrabold font-mono text-gray-900 dark:text-white leading-none">{store.pincode}</div>
                         <div className="text-[11px] font-semibold text-gray-500 mt-1">PIN code</div>
                       </div>
-                      <div className="bg-white dark:bg-[#1A1740] px-5 py-3">
+                      <div className="bg-white dark:bg-pal-card-dark px-5 py-3">
                         <div className={`text-sm font-extrabold leading-none ${hasCoords ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                           {hasCoords ? 'Mapped' : 'Pending'}
                         </div>
@@ -709,7 +711,7 @@ export default function AdminPage() {
       {/* Add Store Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1A1740] rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-white/10 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-pal-card-dark rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-white/10 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Add New iPlanet Store</h3>
             <form onSubmit={handleCreateStore} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">

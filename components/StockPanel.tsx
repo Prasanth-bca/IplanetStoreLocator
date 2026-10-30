@@ -105,7 +105,7 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
       aria-label={`Stock available at ${posCode}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-200 dark:border-white/10 bg-white dark:bg-[#1A1740]">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-200 dark:border-white/10 bg-white dark:bg-pal-card-dark">
         <div className="flex items-center gap-2 min-w-0">
           <Package className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
           <h4 className="text-sm font-extrabold text-gray-950 dark:text-white">Stock available</h4>
@@ -220,7 +220,7 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
         )}
 
         {!loading && !error && grouped.length > 0 && (
-          <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1A1740] overflow-hidden">
+          <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-pal-card-dark overflow-hidden">
             <div className="grid grid-cols-[minmax(0,1fr)_48px] sm:grid-cols-[minmax(0,1fr)_72px_120px] gap-3 px-3 py-2 text-[10px] uppercase tracking-widest font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800/60 border-b border-gray-100 dark:border-white/10">
               <span>Product</span>
               <span className="text-right">Qty</span>

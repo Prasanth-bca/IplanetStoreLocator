@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { UserHeartbeat } from '@/components/UserHeartbeat';
+import { PALETTE_BOOT_SCRIPT } from '@/lib/palettes';
 
 export const metadata: Metadata = {
   title: 'iPlanet AI Store Locator | Find Nearest iPlanet Retail Store',
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: PALETTE_BOOT_SCRIPT }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -30,7 +32,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen flex flex-col bg-[#F3F1FD] text-[#1F1B45] dark:bg-[#0d0b26] dark:text-[#F3F1FD] transition-colors duration-200">
+      <body className="min-h-screen flex flex-col bg-pal-page text-pal-ink dark:bg-pal-page-dark dark:text-pal-page transition-colors duration-200">
         <ThemeProvider>
           <UserHeartbeat />
           {children}

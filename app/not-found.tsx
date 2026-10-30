@@ -4,8 +4,8 @@ import { Compass } from 'lucide-react';
 /** Shown for any address the app doesn't have, with a way back instead of a bare 404. */
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F3F1FD] dark:bg-[#0d0b26] px-4">
-      <div className="w-full max-w-sm text-center bg-white dark:bg-[#1A1740] rounded-3xl p-8 border border-gray-200/80 dark:border-white/10 shadow-sm">
+    <div className="min-h-screen flex items-center justify-center bg-pal-page dark:bg-pal-page-dark px-4">
+      <div className="w-full max-w-sm text-center bg-white dark:bg-pal-card-dark rounded-3xl p-8 border border-gray-200/80 dark:border-white/10 shadow-sm">
         <div className="mx-auto mb-4 w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center">
           <Compass className="w-6 h-6 text-blue-600 dark:text-blue-400" />
         </div>
