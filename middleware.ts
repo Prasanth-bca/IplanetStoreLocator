@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SESSION_COOKIE, verifySessionToken } from '@/lib/adminAuth';
-import { canAccess } from '@/lib/access';
+import { canAccess, isAppPage } from '@/lib/access';
 
 /**
  * First line of defence: the signed session says who is signed in and with what role, and the
@@ -20,7 +20,8 @@ export async function middleware(request: NextRequest) {
   if (!session) {
     if (isApi) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('next', pathname);
+    // Only remember real pages; an unknown address would just sign you in and then 404.
+    if (isAppPage(pathname)) loginUrl.searchParams.set('next', pathname);
     return NextResponse.redirect(loginUrl);
   }
 

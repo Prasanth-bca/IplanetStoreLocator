@@ -5,6 +5,9 @@ import { Navbar } from '@/components/Navbar';
 import { SearchHero } from '@/components/SearchHero';
 import { StoreCard } from '@/components/StoreCard';
 import { InteractiveMap } from '@/components/InteractiveMap';
+import { OffersProvider } from '@/components/offers/OffersContext';
+import { StoreOffersPanel } from '@/components/offers/StoreOffersPanel';
+import { BankOffersPanel } from '@/components/offers/BankOffersPanel';
 import { SearchResponse } from '@/types/store';
 import { AlertCircle, Store as StoreIcon, ShieldAlert, Sparkles, Loader2, Navigation2 } from 'lucide-react';
 
@@ -92,22 +95,32 @@ export default function LocatorPage() {
   };
 
   return (
+    <OffersProvider>
     <div className="min-h-screen flex flex-col bg-[#fbfbfd] dark:bg-[#0a0a0c] text-[#1d1d1f] dark:text-[#f5f5f7] transition-colors duration-200">
       <Navbar />
 
-      {/* Search */}
-      <SearchHero
-        onSearch={(q) => handleSearch(q, activeCount, activeCategory)}
-        onUseLocation={handleUseLocation}
-        isLoading={isLoading}
-        activeCount={activeCount}
-        onCountChange={handleCountChange}
-        activeCategory={activeCategory}
-        onCategoryChange={handleCategoryChange}
-      />
-
-      {/* Main Content Area */}
+      {/* Main Content Area: offers on the left; finder, results and map on the right */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+       <div className="locator-grid">
+        <div className="area-search">
+          <SearchHero
+            embedded
+            onSearch={(q) => handleSearch(q, activeCount, activeCategory)}
+            onUseLocation={handleUseLocation}
+            isLoading={isLoading}
+            activeCount={activeCount}
+            onCountChange={handleCountChange}
+            activeCategory={activeCategory}
+            onCategoryChange={handleCategoryChange}
+          />
+        </div>
+
+        <aside className="area-offers space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1" aria-label="Offers">
+          <StoreOffersPanel />
+          <BankOffersPanel />
+        </aside>
+
+        <div className="area-results">
         {/* Error notification */}
         {errorMessage && (
           <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-sm flex items-start gap-3 shadow-xs">
@@ -129,9 +142,9 @@ export default function LocatorPage() {
 
         {/* Results layout */}
         {searchResponse && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
             {/* Left Column: Store Cards List */}
-            <div className="lg:col-span-7 flex flex-col gap-5">
+            <div className="xl:col-span-7 flex flex-col gap-5">
               <div className="flex items-center justify-between gap-4 pb-3 border-b border-black/[0.08] dark:border-white/[0.1]">
                 <div className="flex items-center gap-2 shrink-0">
                   <StoreIcon className="w-4 h-4 text-[#0066cc] dark:text-[#2997ff]" />
@@ -176,7 +189,7 @@ export default function LocatorPage() {
             </div>
 
             {/* Right Column: Google Interactive Map */}
-            <div className="lg:col-span-5 sticky top-24">
+            <div className="xl:col-span-5 xl:sticky xl:top-24">
               <InteractiveMap
                 results={searchResponse.results}
                 selectedStoreId={selectedStoreId}
@@ -186,8 +199,11 @@ export default function LocatorPage() {
             </div>
           </div>
         )}
+        </div>
+       </div>
       </main>
 
     </div>
+    </OffersProvider>
   );
 }

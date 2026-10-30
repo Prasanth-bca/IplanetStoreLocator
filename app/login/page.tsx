@@ -4,6 +4,7 @@ import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Loader2, AlertCircle } from 'lucide-react';
 import { resetCurrentUser } from '@/lib/useCurrentUser';
+import { isAppPage } from '@/lib/access';
 
 export default function LoginPage() {
   return (
@@ -41,9 +42,9 @@ function LoginForm() {
       }
 
       resetCurrentUser(); // so the next page asks who just signed in
-      // Only follow same-site paths, never a link to another website.
+      // Only follow real pages of this site: never another website, never an address that doesn't exist.
       const requested = searchParams.get('next') || '/';
-      const next = requested.startsWith('/') && !requested.startsWith('//') ? requested : '/';
+      const next = requested.startsWith('/') && !requested.startsWith('//') && isAppPage(requested) ? requested : '/';
       router.push(next);
       router.refresh();
     } catch {

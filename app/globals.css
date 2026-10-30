@@ -563,3 +563,26 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* ========== STORE FINDER PAGE LAYOUT ========== */
+/* Phones: finder first, then the offer panels, then results. Desktop: offers on the left, finder and results on the right. */
+.locator-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "search" "offers" "results";
+}
+.locator-grid > .area-search { grid-area: search; }
+.locator-grid > .area-offers { grid-area: offers; }
+.locator-grid > .area-results { grid-area: results; min-width: 0; }
+@media (min-width: 1024px) {
+  .locator-grid {
+    grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-areas: "offers search" "offers results";
+    grid-template-rows: auto 1fr;
+    align-items: start;
+  }
+}
+@media (min-width: 1280px) {
+  .locator-grid { grid-template-columns: 380px minmax(0, 1fr); }
+}

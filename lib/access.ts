@@ -38,6 +38,7 @@ const SALES_ALLOWED: Rule[] = [
   { path: '/api/stores/stock/availability', methods: ['POST'] },
   { path: /^\/api\/stores\/[^/]+\/stock$/ },
   { path: '/api/products' },
+  { path: '/api/offers' },
   // APIs: passing a lead and reading their own history
   { path: '/api/leads', methods: ['POST'] },
   { path: '/api/my/leads' },
@@ -55,4 +56,30 @@ export function canAccess(role: Role, pathname: string, method = 'GET'): boolean
     const allowed = rule.methods ?? ['GET', 'HEAD'];
     return allowed.includes(verb);
   });
+}
+
+/**
+ * Every page the app serves. Used so sign-in only ever sends someone to a real page, never to a
+ * remembered address that doesn't exist (e.g. /dashboard from another project on localhost:3000).
+ * Keep this in step with the page.tsx files under app/ when a page is added or removed.
+ */
+export const APP_PAGES: readonly string[] = [
+  '/',
+  '/locator',
+  '/stock',
+  '/products',
+  '/my-leads',
+  '/account',
+  '/admin',
+  '/admin/stock',
+  '/admin/products',
+  '/admin/leads',
+  '/admin/users',
+  '/admin/sessions',
+  '/admin/offers',
+];
+
+/** True if the path (ignoring any ?query or #hash) is one of the app's pages. */
+export function isAppPage(pathname: string): boolean {
+  return APP_PAGES.includes(norm(pathname.split('#')[0].split('?')[0]));
 }

@@ -11,6 +11,8 @@ interface SearchHeroProps {
   onCountChange: (count: number) => void;
   activeCategory: 'Retail' | 'Care';
   onCategoryChange: (cat: 'Retail' | 'Care') => void;
+  /** Render as a card inside a column (used next to the offer panels) instead of a full-width band. */
+  embedded?: boolean;
 }
 
 export const SearchHero: React.FC<SearchHeroProps> = ({
@@ -21,6 +23,7 @@ export const SearchHero: React.FC<SearchHeroProps> = ({
   onCountChange,
   activeCategory,
   onCategoryChange,
+  embedded = false,
 }) => {
   const [inputVal, setInputVal] = useState('');
 
@@ -32,9 +35,15 @@ export const SearchHero: React.FC<SearchHeroProps> = ({
   };
 
   return (
-    <section className="w-full border-b border-black/[0.06] dark:border-white/10 bg-white/60 dark:bg-[#0e0e11]/60">
+    <section
+      className={
+        embedded
+          ? 'rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#16161a] shadow-sm p-5'
+          : 'w-full border-b border-black/[0.06] dark:border-white/10 bg-white/60 dark:bg-[#0e0e11]/60'
+      }
+    >
       {/* Same container as the navbar and results, so everything shares one left edge */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-3">
+      <div className={embedded ? 'space-y-3' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-3'}>
         <h1 className="sr-only">Find your nearest iPlanet {activeCategory === 'Care' ? 'service centre' : 'store'}</h1>
 
         <div className="flex flex-wrap items-center justify-between gap-3">

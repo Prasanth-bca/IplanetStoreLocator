@@ -79,3 +79,9 @@ skills-lock.json
 !public/iPlanet_Real_Stock_ERP_Template.csv
 !iPlanet_Real_Stock_ERP_Template.xlsx
 !iPlanet_Real_Stock_ERP_Template.csv
+
+# Confidential offer source files (internal cost/margin sheets, partner offer decks). Never commit.
+shared/**/*.pdf
+shared/**/*.xlsx
+shared/**/*.xls
+shared/**/*.csv

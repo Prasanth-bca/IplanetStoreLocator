@@ -78,6 +78,14 @@ const TOOLS: Destination[] = [
   },
   {
     roles: ['ADMIN'],
+    href: '/admin/offers',
+    title: 'Offers',
+    description: 'Import the store and bank offer master from Excel, and see what is live today.',
+    Icon: Tag,
+    tint: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400',
+  },
+  {
+    roles: ['ADMIN'],
     href: '/admin/users',
     title: 'Users',
     description: 'Create sign-ins for the team, choose their role, reset passwords and disable accounts.',

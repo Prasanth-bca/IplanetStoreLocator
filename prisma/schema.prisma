@@ -175,10 +175,113 @@ model UserSession {
   endedAt      DateTime? @map("ended_at")
   failReason   String?   @map("fail_reason")
 
-  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, loginAt])
   @@index([lastActiveAt])
   @@index([status])
   @@map("user_sessions")
+}
+
+/// A promotional campaign window (e.g. Diwali). Controls the festive label and styling of the two
+/// offer panels. The offers themselves carry their own validity dates.
+model OfferCampaign {
+  id        String   @id @default(cuid())
+  name      String
+  /// Shown on both offer panels while the campaign is running, e.g. "DIWALI SPECIAL".
+  label     String   @default("")
+  /// "Diwali" turns on the festive styling; "None" shows only the label.
+  theme     String   @default("None")
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  active    Boolean  @default(true)
+
+  @@map("offer_campaigns")
+}
+
+/// Store discount offers, imported from the Offers Master workbook ("Store Offers" sheet).
+model StoreOffer {
+  id            String    @id @default(cuid())
+  /// The Offer ID from the workbook.
+  offerId       String    @unique @map("offer_id")
+  category      String
+  /// Model family as in the offer sheet; matched to the catalogue Class ignoring case/spaces/symbols.
+  productName   String    @map("product_name")
+  variant       String?
+  storage       String?
+  /// The source sheet's own heading, e.g. "Unconditional Flat Off", "Corporate", "Special Offer 1".
+  offerType     String    @map("offer_type")
+  /// "Without Cashify" / "With Cashify" where the source separates them.
+  tradeIn       String?   @map("trade_in")
+  customer      String
+  /// "Percent", "Amount (₹)" or "Benefit (text)".
+  discountType  String    @map("discount_type")
+  discountValue Float?    @map("discount_value")
+  isUpTo        Boolean?  @map("is_up_to")
+  offerText     String    @map("offer_text")
+  eligibility   String?
+  combinable    Boolean   @default(true)
+  /// India calendar dates, both inclusive. A null validUntil means no end date.
+  validFrom     DateTime? @map("valid_from") @db.Date
+  validUntil    DateTime? @map("valid_until") @db.Date
+  terms         String?
+  status        String    @default("Active")
+  source        String?
+  sortOrder     Int       @default(0) @map("sort_order")
+
+  @@index([category])
+  @@index([productName])
+  @@map("store_offers")
+}
+
+/// Bank / partner offers, imported from the "Bank Offers" sheet. A workbook row naming several banks
+/// becomes one row per bank so the panel can filter by bank.
+model BankOffer {
+  id          String    @id @default(cuid())
+  offerId     String    @map("offer_id")
+  bank        String
+  category    String
+  productName String    @map("product_name")
+  variant     String?
+  /// "Exact" or "Contains all": how matchText is tested against the catalogue Class / Name.
+  matchType   String    @map("match_type")
+  matchText   String    @map("match_text")
+  cardType    String?   @map("card_type")
+  offerType   String    @map("offer_type")
+  amount      Int?
+  percent     Float?
+  minTxn      Int?      @map("min_txn")
+  maxCashback Int?      @map("max_cashback")
+  emiType     String    @map("emi_type")
+  details     String?
+  rvFrom      Int?      @map("rv_from")
+  rvTo        Int?      @map("rv_to")
+  combinable  Boolean   @default(true)
+  validFrom   DateTime? @map("valid_from") @db.Date
+  validUntil  DateTime? @map("valid_until") @db.Date
+  terms       String?
+  status      String    @default("Active")
+  source      String?
+  sortOrder   Int       @default(0) @map("sort_order")
+
+  @@unique([offerId, bank])
+  @@index([category])
+  @@map("bank_offers")
+}
+
+/// One row per successful import, so the panels can show when the data was last refreshed.
+model OfferImport {
+  id             String   @id @default(cuid())
+  fileName       String   @map("file_name")
+  importedAt     DateTime @default(now()) @map("imported_at")
+  importedById   String?  @map("imported_by_id")
+  importedByName String?  @map("imported_by_name")
+  storeCount     Int      @map("store_count")
+  bankCount      Int      @map("bank_count")
+  campaignCount  Int      @map("campaign_count")
+  /// Non-blocking warnings from the import, as JSON text.
+  warnings       String?
+
+  @@index([importedAt])
+  @@map("offer_imports")
 }
