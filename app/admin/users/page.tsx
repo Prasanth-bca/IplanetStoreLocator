@@ -72,8 +72,8 @@ export default function UsersAdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0c] pb-16">
-      <header className="bg-white/90 dark:bg-[#0e0e11]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 py-3.5 sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
+      <header className="bg-white/90 dark:bg-[#0e0e11]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
+        <div className="w-full flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/admin" className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300" aria-label="Back to admin">
               <ArrowLeft className="w-4 h-4" />
@@ -102,7 +102,7 @@ export default function UsersAdminPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-4">
+      <main className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-6 space-y-4">
         <div className="rounded-2xl bg-sky-50 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 px-4 py-3 text-sm text-sky-900 dark:text-sky-200 flex gap-2.5">
           <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" />
           <p>

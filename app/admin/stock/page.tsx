@@ -320,8 +320,8 @@ export default function StockAdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0c] pb-32">
-      <header className="bg-white/90 dark:bg-[#0e0e11]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 py-3.5 sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
+      <header className="bg-white/90 dark:bg-[#0e0e11]/90 backdrop-blur border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-3.5 sticky top-0 z-40">
+        <div className="w-full flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/admin" className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300" aria-label="Back to admin">
               <ArrowLeft className="w-4 h-4" />
@@ -350,7 +350,7 @@ export default function StockAdminPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+      <main className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-6 space-y-5">
         {/* Store picker + store summary */}
         <section className="bg-white dark:bg-[#16161a] rounded-3xl p-5 border border-gray-200/80 dark:border-white/10 space-y-4">
           <StorePicker stores={stores} value={store} onPick={pickStore} />
@@ -958,7 +958,7 @@ export default function StockAdminPage() {
       {/* Sticky save bar */}
       {store && dirty.length > 0 && tab === 'stock' && (
         <div className="fixed bottom-0 inset-x-0 z-40 border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[#0e0e11]/95 backdrop-blur animate-fadeInUp">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3">
+          <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-3 flex flex-wrap items-center gap-3">
             <div className="text-sm font-bold text-gray-900 dark:text-white mr-auto">
               {dirty.length} unsaved change{dirty.length === 1 ? '' : 's'}
               <span className="hidden sm:inline text-xs font-normal text-gray-500"> · Ctrl+S to save</span>

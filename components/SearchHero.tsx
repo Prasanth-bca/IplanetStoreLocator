@@ -43,7 +43,7 @@ export const SearchHero: React.FC<SearchHeroProps> = ({
       }
     >
       {/* Same container as the navbar and results, so everything shares one left edge */}
-      <div className={embedded ? 'space-y-3' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-3'}>
+      <div className={embedded ? 'space-y-3' : 'w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-5 space-y-3'}>
         <h1 className="sr-only">Find your nearest iPlanet {activeCategory === 'Care' ? 'service centre' : 'store'}</h1>
 
         <div className="flex flex-wrap items-center justify-between gap-3">

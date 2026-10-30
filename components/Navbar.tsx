@@ -35,7 +35,7 @@ export const Navbar: React.FC = () => {
           : 'bg-white/70 dark:bg-[#0e0e11]/70 backdrop-blur-md border-b border-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 h-16 flex items-center justify-between gap-4">
         {/* Brand */}
         <Link href="/locator" className="flex items-center gap-3 group shrink-0">
           {/* Apple-style logo mark */}

@@ -586,3 +586,6 @@ body {
 @media (min-width: 1280px) {
   .locator-grid { grid-template-columns: 380px minmax(0, 1fr); }
 }
+@media (min-width: 1536px) {
+  .locator-grid { grid-template-columns: 440px minmax(0, 1fr); gap: 2rem; }
+}

@@ -139,7 +139,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#fbfbfd] dark:bg-[#0a0a0c] text-gray-900 dark:text-gray-100">
       <header className="border-b border-black/5 dark:border-white/10 bg-white/70 dark:bg-[#0e0e11]/70 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 h-16 flex items-center justify-between gap-4">
           <div className="flex flex-col leading-none">
             <span className="text-[17px] font-extrabold tracking-tight text-gray-950 dark:text-white">iPlanet</span>
             <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 tracking-wider uppercase">AI Store Locator</span>
@@ -177,7 +177,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+      <main className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-12 sm:py-16">
         <div className="mb-10">
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-950 dark:text-white">Welcome to Customer Experience Centre</h1>
           <p className="mt-2 text-base text-gray-500 dark:text-gray-400">
@@ -197,13 +197,13 @@ export default function HomePage() {
             {user?.role === 'ADMIN' ? 'Management tools' : 'Your tools'}
           </h2>
           {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2" aria-busy="true">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="h-44 rounded-3xl bg-white dark:bg-[#16161a] border border-gray-100 dark:border-white/10 animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {tools.map(t => (
                 <DestinationCard key={t.href} d={t} />
               ))}

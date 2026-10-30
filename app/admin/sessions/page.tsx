@@ -231,7 +231,7 @@ export default function AdminSessionsPage() {
     <div className="min-h-screen bg-[#fbfbfd] dark:bg-[#0a0a0c] text-gray-900 dark:text-gray-100 flex flex-col font-sans">
       {/* Top Header */}
       <header className="sticky top-0 z-30 border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#111115]/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+        <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
               href="/admin"
@@ -295,7 +295,7 @@ export default function AdminSessionsPage() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-6 space-y-6">
         {/* KPI Dashboard Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Tile 1: Total Online */}

@@ -104,8 +104,8 @@ export default function OffersAdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0c] pb-16">
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 px-4 py-3.5 backdrop-blur dark:border-white/10 dark:bg-[#0e0e11]/90 sm:px-6">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
+      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 px-4 py-3.5 backdrop-blur dark:border-white/10 dark:bg-[#0e0e11]/90 sm:px-6 lg:px-8 2xl:px-12">
+        <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <Link href="/admin" aria-label="Back to admin" className="rounded-xl bg-gray-100 p-2 text-gray-600 dark:bg-zinc-800 dark:text-gray-300">
               <ArrowLeft className="h-4 w-4" />
@@ -123,7 +123,7 @@ export default function OffersAdminPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl space-y-5 px-4 py-6 sm:px-6">
+      <main className="w-full space-y-5 px-4 py-6 sm:px-6 lg:px-8 2xl:px-12">
         {/* Current data */}
         <section className="space-y-3 rounded-3xl border border-gray-200/80 bg-white p-5 dark:border-white/10 dark:bg-[#16161a]">
           <h2 className="text-base font-bold text-gray-900 dark:text-white">Current offer data</h2>

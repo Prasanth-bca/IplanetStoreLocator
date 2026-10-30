@@ -253,8 +253,8 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[#fbfbfd] dark:bg-[#0a0a0c] text-gray-900 dark:text-gray-100 transition-colors duration-200">
       {/* Admin Navbar */}
-      <header className="bg-white dark:bg-[#0e0e11] border-b border-gray-200 dark:border-white/10 px-6 py-4 sticky top-0 z-40 shadow-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="bg-white dark:bg-[#0e0e11] border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 2xl:px-12 py-4 sticky top-0 z-40 shadow-xs">
+        <div className="w-full flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
               href="/"
@@ -277,7 +277,7 @@ export default function AdminPage() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <ThemeToggle />
 
             <button
@@ -343,7 +343,7 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-8 space-y-8">
         {/* Bulk Import Card */}
         <section className="bg-white dark:bg-[#16161a] rounded-3xl p-6 border border-gray-200/80 dark:border-white/10 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
