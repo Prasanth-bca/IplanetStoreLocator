@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
 import { SelectedDevice, useOffers } from '@/components/offers/OffersContext';
 
@@ -41,6 +42,10 @@ export function DeviceSearch() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const box = useRef<HTMLDivElement>(null);
+  const field = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLUListElement>(null);
+  // The list floats above the page (a portal), so the panel's edges and scrolling can never clip it.
+  const [pos, setPos] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null);
   const listId = 'device-search-list';
 
   useEffect(() => {
@@ -48,7 +53,10 @@ export function DeviceSearch() {
   }, []);
 
   useEffect(() => {
-    const close = (e: MouseEvent) => !box.current?.contains(e.target as Node) && setOpen(false);
+    const close = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (!box.current?.contains(t) && !list.current?.contains(t)) setOpen(false);
+    };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, []);
@@ -64,7 +72,34 @@ export function DeviceSearch() {
       .sort((a, b) => (DEVICE_RANK[a.category] ?? 9) - (DEVICE_RANK[b.category] ?? 9) || a.name.localeCompare(b.name));
   }, [products, query]);
 
-  const shown = results.slice(0, 8);
+  const shown = results;
+
+  const place = () => {
+    const r = field.current?.getBoundingClientRect();
+    if (!r) return;
+    const below = window.innerHeight - r.bottom - 16;
+    const above = r.top - 16;
+    // Prefer opening downward; open upward only when there is clearly more room above.
+    const up = below < 240 && above > below;
+    const maxHeight = Math.max(180, Math.min(up ? above : below, 640));
+    const width = Math.min(Math.max(r.width, 440), window.innerWidth - 16);
+    setPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), width, maxHeight, top: up ? r.top - 6 - Math.min(maxHeight, 640) : r.bottom + 6 });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open, query]);
+
+  useEffect(() => {
+    document.getElementById(`device-opt-${shown[active]?.sku}`)?.scrollIntoView({ block: 'nearest' });
+  }, [active, shown]);
 
   const choose = (p: ProductLite) => {
     const d: SelectedDevice = { sku: p.sku, name: p.name, variant: p.variant, category: p.category };
@@ -91,7 +126,7 @@ export function DeviceSearch() {
 
   return (
     <div ref={box} className="relative">
-      <div className="relative">
+      <div ref={field} className="relative">
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
           role="combobox"
@@ -113,11 +148,13 @@ export function DeviceSearch() {
         />
       </div>
 
-      {open && query.trim() && (
+      {open && query.trim() && pos && typeof document !== 'undefined' && createPortal(
         <ul
+          ref={list}
           id={listId}
           role="listbox"
-          className="absolute z-30 mt-1.5 max-h-72 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-[#16161a]"
+          style={{ left: pos.left, top: pos.top, width: pos.width, maxHeight: pos.maxHeight }}
+          className="fixed z-[100] overflow-y-auto rounded-2xl border border-gray-200 bg-white py-1 shadow-2xl dark:border-white/10 dark:bg-[#16161a]"
         >
           {loadError && <li className="px-4 py-3 text-sm text-red-600">The device list couldn’t be loaded.</li>}
           {!loadError && shown.length === 0 && <li className="px-4 py-3 text-sm text-gray-500">No device matches “{query}”.</li>}
@@ -136,8 +173,9 @@ export function DeviceSearch() {
               <span className="shrink-0 text-[11px] font-semibold text-gray-400">{p.category}</span>
             </li>
           ))}
-          {results.length > shown.length && <li className="px-4 py-2 text-xs text-gray-400">{results.length - shown.length} more. Keep typing to narrow it down.</li>}
-        </ul>
+          {shown.length > 0 && <li className="border-t border-gray-100 px-4 py-1.5 text-[11px] text-gray-400 dark:border-white/10">{shown.length} matching {shown.length === 1 ? 'device' : 'devices'}</li>}
+        </ul>,
+        document.body
       )}
 
       {device && (
