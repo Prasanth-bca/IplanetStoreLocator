@@ -31,6 +31,8 @@ const SALES_ALLOWED: Rule[] = [
   // APIs: identity and sign-out
   { path: '/api/me' },
   { path: '/api/me/password', methods: ['POST'] },
+  // The live-monitor heartbeat: without this a Sales user's session never updates and drops off the Live Monitor.
+  { path: '/api/me/heartbeat', methods: ['POST'] },
   { path: '/api/logout', methods: ['POST'] },
   // APIs: store finder, stock viewer and product viewer
   { path: '/api/stores/search' },

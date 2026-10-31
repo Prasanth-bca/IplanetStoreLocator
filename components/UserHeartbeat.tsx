@@ -22,11 +22,13 @@ export function UserHeartbeat() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pathname: window.location.pathname }),
         });
-        if (res.status === 403) {
+        // 401: the session was ended (an admin signed them out, they were disabled, or it expired).
+        // 403 with `revoked`: this one session was terminated. Either way go to the sign-in page.
+        if (res.status === 401) {
+          window.location.href = '/login?msg=' + encodeURIComponent('Your session has ended. Please sign in again.');
+        } else if (res.status === 403) {
           const data = await res.json().catch(() => ({}));
-          if (data.revoked) {
-            window.location.href = '/login?msg=Session+ended+by+administrator';
-          }
+          if (data.revoked) window.location.href = '/login?msg=' + encodeURIComponent('Your session was ended by an administrator.');
         }
       } catch {
         // Ignore network glitches

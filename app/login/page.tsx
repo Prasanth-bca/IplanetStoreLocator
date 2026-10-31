@@ -19,6 +19,8 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  // e.g. "Your session was ended by an administrator." when the heartbeat sent them here
+  const notice = (searchParams.get('msg') || '').slice(0, 120);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -107,6 +109,10 @@ function LoginForm() {
               />
               <Lock className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white" />
             </label>
+
+            {notice && !error && (
+              <div role="status" className="rounded-xl border border-white/40 bg-white/15 px-3 py-2 text-xs text-white backdrop-blur">{notice}</div>
+            )}
 
             {error && (
               <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200/60 bg-red-950/40 px-3 py-2 text-xs text-red-100 backdrop-blur">

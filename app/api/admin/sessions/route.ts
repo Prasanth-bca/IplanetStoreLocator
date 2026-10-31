@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole } from '@/lib/auth';
+import { forgetUser, requireRole } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,6 +112,7 @@ export async function POST(request: NextRequest) {
           where: { id: session.userId },
           data: { tokenVersion: { increment: 1 } },
         });
+        forgetUser(session.userId); // this server stops trusting its cached copy at once; others within 30 s
       }
 
       return NextResponse.json({ success: true, message: `Terminated session for ${session.username}` });

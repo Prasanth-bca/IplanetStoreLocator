@@ -75,7 +75,7 @@ export async function verifySessionToken(token: string | undefined | null): Prom
     // Tokens issued before roles existed have no uid/role and are rejected, which signs everyone out once.
     if (typeof p.uid !== 'string' || !isRole(p.role) || typeof p.tv !== 'number' || typeof p.exp !== 'number') return null;
     if (p.exp <= Date.now()) return null;
-    return { uid: p.uid, role: p.role, tv: p.tv, exp: p.exp };
+    return { uid: p.uid, role: p.role, tv: p.tv, exp: p.exp, ...(typeof p.sid === 'string' ? { sid: p.sid } : {}) };
   } catch {
     return null;
   }
