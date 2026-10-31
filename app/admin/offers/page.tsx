@@ -6,6 +6,7 @@ import { AlertTriangle, ArrowLeft, CheckCircle, Download, FileSpreadsheet, Home,
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { formatUpdated } from '@/components/offers/OfferShell';
 import { formatDay } from '@/lib/offers/dates';
+import { OffersManager } from '@/components/offers/OffersManager';
 
 interface Tally {
   total: number;
@@ -176,6 +177,9 @@ export default function OffersAdminPage() {
             </>
           )}
         </section>
+
+        {/* View and edit */}
+        <OffersManager onChanged={loadStatus} />
 
         {/* Upload */}
         <section className="space-y-4 rounded-3xl border border-gray-200/80 bg-white p-5 dark:border-white/10 dark:bg-pal-card-dark">

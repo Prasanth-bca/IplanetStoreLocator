@@ -11,6 +11,7 @@ import { fromExcelSerial, offerState, parseDateCell } from '../lib/offers/dates'
 import { bankOfferMatches, norm, storeOfferMatches } from '../lib/offers/match';
 import { offersForProduct, runningCampaign } from '../lib/offers/engine';
 import { parseOffersWorkbook } from '../lib/offers/workbook';
+import { checkBankOffer, checkCampaign, checkStoreOffer } from '../lib/offers/validate';
 import { bankFilterCounts, bankGroupOf, formatInr, groupBankOffers, groupStoreOffers, storeValueLabel } from '../lib/offers/present';
 import type { BankOfferData, CatalogueProduct, StoreOfferData } from '../lib/offers/types';
 
@@ -260,6 +261,42 @@ test('identical offers from several banks are shown once with all the banks, and
 test('different amounts or end dates are NOT merged into one line', () => {
   const rows = [bo({ bank: 'Axis Bank', amount: 8000, validUntil: '2026-11-14' }), bo({ bank: 'ICICI Bank', amount: 7000 })];
   assert.equal(groupBankOffers(rows)[0].items.length, 2);
+});
+
+/* ───────── hand-edited offers (admin screen) ───────── */
+const storeForm = (o: Record<string, unknown> = {}) => ({ offerId: 'SO-9', category: 'iPhone', productName: 'iPhone 17', offerType: 'Flat', customer: 'All customers', discountType: 'Percent', discountValue: '5', isUpTo: 'Yes', combinable: 'Yes', offerText: 'UPTO 5% OFF', status: 'Active', validFrom: '', validUntil: '', ...o });
+const bankForm = (o: Record<string, unknown> = {}) => ({ offerId: 'BO-9', bank: 'Axis Bank', category: 'iPhone', productName: 'iPhone 17', matchType: 'Exact', matchText: 'iPhone 17', offerType: 'Card Full Swipe Cashback', emiType: 'Non-EMI', amount: '7000', status: 'Active', combinable: 'Yes', ...o });
+test('a hand-entered store offer is accepted with blank dates, and text numbers become numbers', () => {
+  const r = checkStoreOffer(storeForm());
+  assert.ok(r.ok);
+  if (r.ok) { assert.equal(r.data.discountValue, 5); assert.equal(r.data.validFrom, null); assert.equal(r.data.validUntil, null); assert.equal(r.data.isUpTo, true); }
+});
+test('store offer edits are rejected with plain messages', () => {
+  const bad = (o: Record<string, unknown>, re: RegExp) => { const r = checkStoreOffer(storeForm(o)); assert.ok(!r.ok); if (!r.ok) assert.ok(r.errors.some((e) => re.test(e)), r.errors.join('|')); };
+  bad({ discountValue: '150' }, /between 0 and 100/);
+  bad({ discountValue: 'abc' }, /must be a number/);
+  bad({ category: 'Toaster' }, /Product Category/);
+  bad({ validFrom: '2026-11-10', validUntil: '2026-11-01' }, /before Valid From/);
+  bad({ validFrom: '2026-02-30' }, /not a real date/);
+  bad({ offerText: '' }, /Offer Text is required/);
+  bad({ status: 'Maybe' }, /Active or Inactive/);
+});
+test('bank offer rules match the importer (amount, scheme details, resale band)', () => {
+  assert.ok(checkBankOffer(bankForm()).ok);
+  const bad = (o: Record<string, unknown>, re: RegExp) => { const r = checkBankOffer(bankForm(o)); assert.ok(!r.ok); if (!r.ok) assert.ok(r.errors.some((e) => re.test(e)), r.errors.join('|')); };
+  bad({ amount: '' }, /needs an amount above 0/);
+  bad({ offerType: 'Loan Scheme', amount: '', details: '' }, /needs Scheme/);
+  bad({ offerType: 'Trade-in Top-up (TiTu)', rvFrom: '' }, /needs Resale Value From/);
+  bad({ offerType: 'Trade-in Top-up (TiTu)', rvFrom: '15000', rvTo: '3000' }, /below Resale Value From/);
+  bad({ matchText: '' }, /Match Text is required/);
+  const ok = checkBankOffer(bankForm({ offerType: 'Loan Scheme', amount: '', details: '0%-0-9; 0%-0-12' }));
+  assert.ok(ok.ok);
+});
+test('a campaign needs a name and a start date on or before the end date', () => {
+  assert.ok(checkCampaign({ name: 'Diwali', label: 'DIWALI SPECIAL', theme: 'Diwali', startDate: '2026-11-01', endDate: '2026-11-10', active: true }).ok);
+  assert.ok(!checkCampaign({ name: '', theme: 'Diwali', startDate: '2026-11-01', endDate: '2026-11-10' }).ok);
+  assert.ok(!checkCampaign({ name: 'X', theme: 'Diwali', startDate: '2026-11-10', endDate: '2026-11-01' }).ok);
+  assert.ok(!checkCampaign({ name: 'X', theme: 'Holi', startDate: '2026-11-01', endDate: '2026-11-10' }).ok);
 });
 
 /* ───────── the real workbook, if it is here ───────── */
