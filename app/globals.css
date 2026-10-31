@@ -1060,3 +1060,12 @@ body::after {
 .login-title { animation: login-rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both; }
 @media (max-width: 1023px) { .login-photo { object-position: 30% 0%; } }
 @media (prefers-reduced-motion: reduce) { .login-title { animation: none !important; } }
+
+/* A card that holds a focused field (an open search box or menu) must paint above the cards after it,
+   otherwise its dropdown slides behind them. Glass cards each form their own layer, so this is needed. */
+.rounded-3xl.bg-white:focus-within, .rounded-2xl.bg-white:focus-within,
+.dark .rounded-3xl[class*="dark:bg-pal-card-dark"]:focus-within, .dark .rounded-2xl[class*="dark:bg-pal-card-dark"]:focus-within {
+  position: relative;
+  z-index: 30;
+}
+.rounded-3xl.bg-white.sticky:focus-within, .rounded-3xl.bg-white.fixed:focus-within, .rounded-3xl.bg-white.absolute:focus-within { position: revert-layer; }
