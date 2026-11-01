@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="l" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#CBD1DB"/><stop offset="1" stop-color="#8F98A8"/></linearGradient>
+    <linearGradient id="r" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EEF1F6"/><stop offset=".5" stop-color="#B4BBC8"/><stop offset="1" stop-color="#7C8696"/></linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#BFE6FF"/></linearGradient>
+    <clipPath id="cl"><polygon points="0,0 36,0 36,4 29,22 36,30 28,42 35,50 31,64 0,64"/></clipPath>
+    <clipPath id="cu"><path d="M32 17 C26.5 11.5 12.5 12.5 10.5 28 C9 40 15.5 56 25 57.5 C28.5 58 30 56.2 32 56.2 C34 56.2 35.5 58 39 57.5 C48.5 56 55 40 53.5 28 C51.5 12.5 37.5 11.5 32 17Z"/><path d="M32 17 C26.5 11.5 12.5 12.5 10.5 28 C9 40 15.5 56 25 57.5 C28.5 58 30 56.2 32 56.2 C34 56.2 35.5 58 39 57.5 C48.5 56 55 40 53.5 28 C51.5 12.5 37.5 11.5 32 17Z" transform="translate(4.5 1.5)"/></clipPath>
+    <clipPath id="cr"><polygon points="64,0 36,0 36,4 29,22 36,30 28,42 35,50 31,64 64,64"/></clipPath>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="#14122E"/>
+  <g transform="translate(3.2 3.2) scale(0.9)">
+    <g clip-path="url(#cu)"><polygon points="36,4 29,22 36,30 28,42 35,50 31,64 35.5,65.5 39.5,51.5 32.5,43.5 40.5,31.5 33.5,23.5 40.5,5.5" fill="url(#b)"/></g>
+    <g clip-path="url(#cl)"><path d="M32 17 C26.5 11.5 12.5 12.5 10.5 28 C9 40 15.5 56 25 57.5 C28.5 58 30 56.2 32 56.2 C34 56.2 35.5 58 39 57.5 C48.5 56 55 40 53.5 28 C51.5 12.5 37.5 11.5 32 17Z" fill="url(#l)"/></g>
+    <g transform="translate(4.5 1.5)"><g clip-path="url(#cr)"><path d="M32 17 C26.5 11.5 12.5 12.5 10.5 28 C9 40 15.5 56 25 57.5 C28.5 58 30 56.2 32 56.2 C34 56.2 35.5 58 39 57.5 C48.5 56 55 40 53.5 28 C51.5 12.5 37.5 11.5 32 17Z" fill="url(#r)"/></g></g>
+    <path d="M32 17.5 C32.4 13.8 33.6 11 35.6 8.6" stroke="#8A93A3" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    <path d="M35.8 11.2 C37.6 6.6 43.4 5.4 46.6 7 C45.6 11.8 40.4 14 35.8 11.2Z" fill="#C9CFDA"/>
+  </g>
+</svg>

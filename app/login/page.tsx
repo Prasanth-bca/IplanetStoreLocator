@@ -6,6 +6,7 @@ import { Eye, EyeOff, User, Loader2, AlertCircle } from 'lucide-react';
 import { resetCurrentUser } from '@/lib/useCurrentUser';
 import { isAppPage } from '@/lib/access';
 import { LoginSlideshow } from '@/components/LoginSlideshow';
+import { BrandMark } from '@/components/BrandMark';
 
 export default function LoginPage() {
   return (
@@ -65,13 +66,14 @@ function LoginForm() {
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1600px] flex-col justify-end gap-6 px-6 py-8 sm:px-10 lg:grid lg:grid-cols-2 lg:gap-12 lg:px-16 lg:py-14">
         {/* title: sits low on every screen so the agent's face stays clear */}
         <header className="login-title flex flex-col justify-end text-white">
-          <span className="mb-3 inline-flex w-fit items-center gap-2 rounded-full border border-white/40 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md">
-            iPlanet · AI Store Locator
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/40 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md">
+            <BrandMark size={18} className="-ml-1" />
+            iPlanet CEC Connect
           </span>
+          <p className="mb-3 mt-1.5 pl-1 text-sm font-medium text-white/90 drop-shadow">One click, everything connected</p>
           <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight drop-shadow-[0_2px_18px_rgba(0,0,0,0.45)] sm:text-5xl lg:text-6xl xl:text-7xl">
             Customer Experience Centre
           </h1>
-          <p className="mt-3 max-w-md text-sm text-white/85 drop-shadow sm:text-base">Sign in to find stores, check stock and share offers with customers.</p>
         </header>
 
         <div className="flex items-center justify-center lg:justify-end lg:pr-[4%]">

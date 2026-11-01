@@ -6,13 +6,13 @@ import { ChatWidget } from '@/components/ChatWidget';
 import { PALETTE_BOOT_SCRIPT } from '@/lib/palettes';
 
 export const metadata: Metadata = {
-  title: 'iPlanet AI Store Locator | Find Nearest iPlanet Retail Store',
+  title: 'iPlanet CEC Connect | One click, everything connected',
   description:
-    'Instantly find the nearest official iPlanet Apple Authorised Reseller stores by PIN code, area, city, landmark, or your current location. Showing distance, travel time & live directions.',
-  keywords: 'iPlanet, Apple Authorised Reseller, store locator, Apple store near me, iPhone, MacBook, iPad, retailer',
+    'iPlanet CEC Connect: one click, everything connected. Stores, stock and offers for the iPlanet Customer Experience Centre team.',
+  keywords: 'iPlanet, CEC Connect, Customer Experience Centre, Apple Authorised Reseller, store locator, Apple store near me, iPhone, MacBook, iPad, retailer',
   openGraph: {
-    title: 'iPlanet AI Store Locator',
-    description: 'Find official iPlanet stores instantly — by PIN, area, city, landmark, or GPS.',
+    title: 'iPlanet CEC Connect',
+    description: 'One click, everything connected. Stores, stock and offers for the iPlanet Customer Experience Centre team.',
     type: 'website',
   },
 };
