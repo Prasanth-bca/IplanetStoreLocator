@@ -23,8 +23,7 @@ import {
   Home,
   MessageCircle,
   Users,
-  Tag
-} from 'lucide-react';
+  Tag, Bot } from 'lucide-react';
 import { PalettePicker } from '@/components/PalettePicker';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ViewToggle, useViewMode } from '@/components/ViewToggle';
@@ -304,6 +303,13 @@ export default function AdminPage() {
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Monitoring</span>
+            </Link>
+            <Link
+              href="/admin/chatbot"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-semibold transition"
+            >
+              <Bot className="w-3.5 h-3.5" />
+              <span>Chatbot</span>
             </Link>
             <Link
               href="/admin/offers"

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { UserHeartbeat } from '@/components/UserHeartbeat';
+import { ChatWidget } from '@/components/ChatWidget';
 import { PALETTE_BOOT_SCRIPT } from '@/lib/palettes';
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({
         <ThemeProvider>
           <UserHeartbeat />
           {children}
+          <ChatWidget />
         </ThemeProvider>
       </body>
     </html>

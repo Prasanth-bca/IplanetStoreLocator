@@ -27,6 +27,7 @@ const SALES_ALLOWED: Rule[] = [
   { path: '/stock' },
   { path: '/products' },
   { path: '/my-leads' },
+  { path: '/billing-notes' },
   { path: '/account' },
   // APIs: identity and sign-out
   { path: '/api/me' },
@@ -41,6 +42,13 @@ const SALES_ALLOWED: Rule[] = [
   { path: /^\/api\/stores\/[^/]+\/stock$/ },
   { path: '/api/products' },
   { path: '/api/offers' },
+  // APIs: the assistant (chat window)
+  { path: '/api/chat', methods: ['POST'] },
+  { path: '/api/chat/status' },
+  // APIs: billing notes (a rep sees and edits only their own; the routes enforce that; deleting is admin only)
+  { path: '/api/billing-notes', methods: ['GET', 'POST'] },
+  { path: '/api/billing-notes/export' },
+  { path: /^\/api\/billing-notes\/[^/]+$/, methods: ['PATCH'] },
   // APIs: passing a lead and reading their own history
   { path: '/api/leads', methods: ['POST'] },
   { path: '/api/my/leads' },
@@ -71,6 +79,7 @@ export const APP_PAGES: readonly string[] = [
   '/stock',
   '/products',
   '/my-leads',
+  '/billing-notes',
   '/account',
   '/admin',
   '/admin/stock',
@@ -79,6 +88,7 @@ export const APP_PAGES: readonly string[] = [
   '/admin/users',
   '/admin/sessions',
   '/admin/offers',
+  '/admin/chatbot',
 ];
 
 /** True if the path (ignoring any ?query or #hash) is one of the app's pages. */

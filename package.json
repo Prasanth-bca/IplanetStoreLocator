@@ -12,7 +12,9 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed-products": "tsx prisma/seed-products.ts",
-    "test:offers": "tsx scripts/test_offers.ts"
+    "test:offers": "tsx scripts/test_offers.ts",
+    "test:chat": "tsx scripts/test_chat.ts",
+    "test:billing": "tsx scripts/test_billing.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

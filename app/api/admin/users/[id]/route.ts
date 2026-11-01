@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 /**
  * Body: any of { name, role, active, password }.
  * Changing role, status or password also signs that person out of all their sessions.
- * Users are never deleted, only disabled, so lead history keeps its attribution.
+ * Disabling keeps the account; use DELETE below to remove it for good.
  */
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireRole(request, 'ADMIN');
@@ -81,5 +81,40 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   } catch (error) {
     console.error('PATCH /api/admin/users/[id] error:', error);
     return NextResponse.json({ error: 'Failed to update the user' }, { status: 500 });
+  }
+}
+
+/**
+ * Permanently removes a user (admin only). Safety rails: you can't delete yourself, and the last active admin
+ * can't be deleted. Their leads stay in history (each lead keeps a copy of the person's name) and their login
+ * sessions stay in the monitoring history under the same username, but are detached from the deleted account.
+ */
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireRole(request, 'ADMIN');
+  if (!auth.ok) return auth.response;
+
+  try {
+    const target = await prisma.user.findUnique({ where: { id: params.id } });
+    if (!target) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
+    if (target.id === auth.user.id) {
+      return NextResponse.json({ error: 'You can’t delete your own account.' }, { status: 400 });
+    }
+    const otherActiveAdmins = await prisma.user.count({ where: { role: 'ADMIN', active: true, NOT: { id: target.id } } });
+    if (wouldRemoveLastAdmin({ role: target.role as Role, active: target.active }, { active: false }, otherActiveAdmins)) {
+      return NextResponse.json({ error: 'There must always be at least one active admin.' }, { status: 400 });
+    }
+
+    await prisma.$transaction([
+      // Sessions would be deleted with the user; keep them for the audit trail instead.
+      prisma.userSession.updateMany({ where: { userId: target.id, status: 'ACTIVE' }, data: { status: 'REVOKED', endedAt: new Date() } }),
+      prisma.userSession.updateMany({ where: { userId: target.id }, data: { userId: null } }),
+      prisma.user.delete({ where: { id: target.id } }),
+    ]);
+    forgetUser(target.id);
+    return NextResponse.json({ success: true, deleted: { username: target.username, name: target.name } });
+  } catch (error) {
+    console.error('DELETE /api/admin/users/[id] error:', error);
+    return NextResponse.json({ error: 'Failed to delete the user' }, { status: 500 });
   }
 }

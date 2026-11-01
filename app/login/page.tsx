@@ -2,9 +2,10 @@
 
 import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, User, Loader2, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, User, Loader2, AlertCircle } from 'lucide-react';
 import { resetCurrentUser } from '@/lib/useCurrentUser';
 import { isAppPage } from '@/lib/access';
+import { LoginSlideshow } from '@/components/LoginSlideshow';
 
 export default function LoginPage() {
   return (
@@ -19,6 +20,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   // e.g. "Your session was ended by an administrator." when the heartbeat sent them here
   const notice = (searchParams.get('msg') || '').slice(0, 120);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +59,7 @@ function LoginForm() {
 
   return (
     <div className="login-frame relative min-h-screen w-full overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/images/login-hero.jpg" alt="" aria-hidden className="login-photo absolute inset-0 h-full w-full object-cover" />
+      <LoginSlideshow />
       <div aria-hidden className="login-photo-tint absolute inset-0" />
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1600px] flex-col justify-end gap-6 px-6 py-8 sm:px-10 lg:grid lg:grid-cols-2 lg:gap-12 lg:px-16 lg:py-14">
@@ -96,10 +97,11 @@ function LoginForm() {
               <User className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white" />
             </label>
 
-            <label className="relative block">
-              <span className="sr-only">Password</span>
+            <div className="relative block">
+              <label htmlFor="login-password" className="sr-only">Password</label>
               <input
-                type="password"
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="current-password"
                 value={password}
@@ -107,8 +109,17 @@ function LoginForm() {
                 placeholder="Password"
                 className="login-field"
               />
-              <Lock className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white" />
-            </label>
+              <button
+                type="button"
+                onClick={() => setShowPassword(v => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-white/90 transition hover:bg-white/15 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
 
             {notice && !error && (
               <div role="status" className="rounded-xl border border-white/40 bg-white/15 px-3 py-2 text-xs text-white backdrop-blur">{notice}</div>

@@ -150,8 +150,9 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  leads    Lead[]
-  sessions UserSession[]
+  leads        Lead[]
+  sessions     UserSession[]
+  billingNotes BillingNote[]
 
   @@map("users")
 }
@@ -284,4 +285,64 @@ model OfferImport {
 
   @@index([importedAt])
   @@map("offer_imports")
+}
+
+/// The chatbot's settings: one row (id "default"). The Groq API key is stored encrypted and never sent to a browser.
+model ChatSetting {
+  id            String   @id @default("default")
+  enabled       Boolean  @default(false)
+  /// AES-256-GCM encrypted Groq key ("iv.tag.cipher", base64url); null until an admin saves one.
+  apiKeyEnc     String?  @map("api_key_enc")
+  /// Last 4 characters of the key, so the admin screen can show which key is saved.
+  apiKeyHint    String?  @map("api_key_hint")
+  /// What staff see in the chat window and what the assistant calls itself.
+  assistantName String   @default("Assistant") @map("assistant_name")
+  model         String   @default("llama-3.3-70b-versatile")
+  systemPrompt  String   @default("") @map("system_prompt")
+  temperature   Float    @default(0.6)
+  maxTokens     Int      @default(800) @map("max_tokens")
+  /// Messages one person may send per minute.
+  ratePerMinute Int      @default(12) @map("rate_per_minute")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  updatedByName String?  @map("updated_by_name")
+
+  @@map("chat_settings")
+}
+
+/// A note made by a sales representative about a customer who was billed on a DIFFERENT phone number from the one
+/// they spoke to and dialled (so the billing team can match the sale to the call).
+/// Rows stay if the person's account is deleted: the agent name is kept as a snapshot.
+model BillingNote {
+  id            String   @id @default(cuid())
+  /// The calendar day of the call / sale (India date).
+  bookingDate   DateTime @map("booking_date") @db.Date
+  /// 10-digit mobile the invoice was raised on. Every field is optional except the date, which defaults to today.
+  billedPhone   String?  @map("billed_phone")
+  /// 10-digit mobile the representative spoke to and dialled.
+  dialledPhone  String?  @map("dialled_phone")
+  customerName  String?  @map("customer_name")
+  /// Free text as typed in the sheet, e.g. "M5 Air", "17 Pro", "Airpods 5".
+  model         String?
+  /// Store POS code, e.g. "TAM".
+  location      String?
+  /// "NOTED", "NOT_BILLED" or "BILLED".
+  status        String   @default("NOTED")
+  invoice       String?
+  /// Invoice value in rupees.
+  value         Int?
+  remarks       String?
+  /// The agent's own code from the calling system, as written in the sheet (e.g. "106936" or "Doocti").
+  agentCode     String?  @map("agent_code")
+  agentName     String   @map("agent_name")
+  createdById   String?  @map("created_by_id")
+  createdBy     User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  updatedByName String?  @map("updated_by_name")
+
+  @@index([bookingDate])
+  @@index([billedPhone])
+  @@index([dialledPhone])
+  @@index([createdById, bookingDate])
+  @@map("billing_notes")
 }

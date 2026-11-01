@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, ArrowLeft, CheckCircle, Copy, Home, Loader2, Pencil, Plus, ShieldCheck, UserCheck, UserX, Users, X, KeyRound } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CheckCircle, Copy, Home, Loader2, Pencil, Plus, ShieldCheck, Trash2, UserCheck, UserX, Users, X, KeyRound } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import { ROLE_LABEL, ROLES, Role } from '@/lib/access';
@@ -24,6 +24,7 @@ type Dialog =
   | { kind: 'edit'; user: UserRow }
   | { kind: 'password'; user: UserRow }
   | { kind: 'toggle'; user: UserRow }
+  | { kind: 'delete'; user: UserRow }
   | { kind: 'credentials'; username: string; password: string; name: string; reset: boolean };
 
 const field =
@@ -131,7 +132,7 @@ export default function UsersAdminPage() {
               {users.map(u => {
                 const isMe = u.id === me?.id;
                 return (
-                  <li key={u.id} className="grid grid-cols-1 md:grid-cols-[minmax(0,1.6fr)_120px_120px_70px_130px] items-center gap-x-4 gap-y-2 px-5 py-3">
+                  <li key={u.id} className="grid grid-cols-1 md:grid-cols-[minmax(0,1.6fr)_120px_120px_70px_160px] items-center gap-x-4 gap-y-2 px-5 py-3">
                     <div className={`min-w-0 ${u.active ? '' : 'opacity-55'}`}>
                       <div className="text-sm font-bold text-gray-950 dark:text-white truncate">
                         {u.name} {isMe && <span className="ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 align-middle">You</span>}
@@ -164,6 +165,15 @@ export default function UsersAdminPage() {
                         className="p-2 rounded-xl text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:cursor-not-allowed"
                       >
                         {u.active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4 text-emerald-600" />}
+                      </button>
+                      <button
+                        onClick={() => setDialog({ kind: 'delete', user: u })}
+                        disabled={isMe}
+                        aria-label={`Delete ${u.name}`}
+                        title={isMe ? 'You can’t delete your own account' : 'Delete user permanently'}
+                        className="p-2 rounded-xl text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:cursor-not-allowed transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </li>
@@ -207,6 +217,7 @@ function UserDialog({ dialog, me, onClose, onChanged }: { dialog: Dialog; me?: s
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !busy && onClose();
@@ -218,7 +229,7 @@ function UserDialog({ dialog, me, onClose, onChanged }: { dialog: Dialog; me?: s
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       return data;
@@ -324,6 +335,28 @@ function UserDialog({ dialog, me, onClose, onChanged }: { dialog: Dialog; me?: s
     return (
       <form onSubmit={async e => { e.preventDefault(); const d = await call(`/api/admin/users/${u.id}`, 'PATCH', { password }); if (d) await onChanged({ kind: 'credentials', username: u.username, password, name: u.name, reset: true }); }}>
         {shell(`Reset password for ${u.name}`, <>{passwordField}<p className="text-xs text-amber-700 dark:text-amber-300">They’ll be signed out everywhere and must use the new password.</p>{err}</>, <>{cancel}{primary('Reset password', password.length < PASSWORD_MIN)}</>)}
+      </form>
+    );
+  }
+
+  if (dialog.kind === 'delete') {
+    const u = dialog.user;
+    const matches = confirmText.trim().toLowerCase() === u.username.toLowerCase();
+    return (
+      <form onSubmit={async e => { e.preventDefault(); if (!matches) return; const d = await call(`/api/admin/users/${u.id}`, 'DELETE', undefined); if (d) await onChanged(null, `${u.name} was deleted.`); }}>
+        {shell(`Delete ${u.name}?`, <>
+          <p className="text-sm text-gray-600 dark:text-gray-300">This permanently removes the login <strong className="font-mono">{u.username}</strong>. They are signed out at once and can never sign in again. This can’t be undone.</p>
+          <ul className="text-xs text-gray-500 dark:text-gray-400 list-disc pl-4 space-y-1">
+            <li>{u.leadCount === 0 ? 'They have not passed any leads.' : `Their ${u.leadCount} lead${u.leadCount === 1 ? '' : 's'} stay in the history under their name.`}</li>
+            <li>Their sign-in history stays in Monitoring.</li>
+            <li>If you only want to stop them signing in, use <strong>Disable</strong> instead: it can be undone.</li>
+          </ul>
+          <label className="block">
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Type <span className="font-mono">{u.username}</span> to confirm</span>
+            <input value={confirmText} onChange={e => setConfirmText(e.target.value)} autoComplete="off" autoCapitalize="none" spellCheck={false} className={`${field} mt-1 font-mono`} />
+          </label>
+          {err}
+        </>, <>{cancel}{primary('Delete permanently', !matches, true)}</>)}
       </form>
     );
   }

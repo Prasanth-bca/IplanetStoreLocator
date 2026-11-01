@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, KeyRound, LogOut, MapPin, MessageCircle, Package, Settings, Tag, Users, type LucideIcon } from 'lucide-react';
+import { ArrowRight, KeyRound, LogOut, MapPin, MessageCircle, Package, Settings, Tag, Users, type LucideIcon, Bot, NotebookPen } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useCurrentUser, resetCurrentUser } from '@/lib/useCurrentUser';
 import { ROLE_LABEL, type Role } from '@/lib/access';
@@ -61,6 +61,14 @@ const TOOLS: Destination[] = [
     tint: 'bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400',
   },
   {
+    roles: ['ADMIN', 'SALES'],
+    href: '/billing-notes',
+    title: 'Billing notes',
+    description: 'Note customers who were billed on a different phone number from the one you spoke to, so billing can match the sale.',
+    Icon: NotebookPen,
+    tint: 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400',
+  },
+  {
     roles: ['ADMIN'],
     href: '/admin/leads',
     title: 'Lead History',
@@ -78,9 +86,17 @@ const TOOLS: Destination[] = [
   },
   {
     roles: ['ADMIN'],
+    href: '/admin/chatbot',
+    title: 'Assistant (chatbot)',
+    description: 'Switch the chat assistant on, add the Groq API key, and choose the model and behaviour.',
+    Icon: Bot,
+    tint: 'bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400',
+  },
+  {
+    roles: ['ADMIN'],
     href: '/admin/offers',
     title: 'Offers',
-    description: 'Import the store and bank offer master from Excel, and see what is live today.',
+    description: 'View, edit and import store and bank offers, and see what is live today.',
     Icon: Tag,
     tint: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400',
   },

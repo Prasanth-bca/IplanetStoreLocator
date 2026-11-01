@@ -51,6 +51,9 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
   // Present only on pages with the offer panels (the Store Finder). Elsewhere this is null and rows just don't link to offers.
   const offers = useOffersOptional();
   const selectedSku = offers?.device?.sku ?? null;
+  // Colours of one model share the same offers, so every colour of the chosen model is highlighted.
+  const isSelected = (it: { sku: string; name: string; category: string }) =>
+    !!offers?.device && (it.sku === selectedSku || (it.name === offers.device.name && it.category === offers.device.category));
 
   // When a device is picked in the shared search, bring its row into view so the two stay visibly in step.
   useEffect(() => {
@@ -236,8 +239,8 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
                     <li
                       key={it.sku}
                       data-sku={it.sku}
-                      aria-current={selectedSku === it.sku ? 'true' : undefined}
-                      className={`grid grid-cols-[minmax(0,1fr)_48px] sm:grid-cols-[minmax(0,1fr)_72px_120px] gap-3 items-center px-3 py-2.5 ${selectedSku === it.sku ? 'bg-amber-50/80 ring-1 ring-inset ring-amber-300 dark:bg-amber-950/20 dark:ring-amber-700/60' : ''}`}
+                      aria-current={isSelected(it) ? 'true' : undefined}
+                      className={`grid grid-cols-[minmax(0,1fr)_48px] sm:grid-cols-[minmax(0,1fr)_72px_120px] gap-3 items-center px-3 py-2.5 ${isSelected(it) ? 'bg-amber-50/80 ring-1 ring-inset ring-amber-300 dark:bg-amber-950/20 dark:ring-amber-700/60' : ''}`}
                     >
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-gray-900 dark:text-white sm:truncate">{it.name}</div>
@@ -255,7 +258,7 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
                             onClick={() => offers.selectDevice({ sku: it.sku, name: it.name, variant: it.variant, category: it.category })}
                             className="mt-1 ml-3 inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline"
                           >
-                            <Tag className="w-3 h-3" /> {selectedSku === it.sku ? 'Showing offers' : 'Offers'}
+                            <Tag className="w-3 h-3" /> {isSelected(it) ? 'Showing offers' : 'Offers'}
                           </button>
                         )}
                         {/* On phones the status sits under the name so the name keeps its width */}

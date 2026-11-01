@@ -30,8 +30,8 @@ function loadProducts(): Promise<ProductLite[]> {
 
 const DEVICE_RANK: Record<string, number> = { iPhone: 0, iPad: 1, Mac: 2, Watch: 3, AirPods: 4 };
 
-export const deviceLabel = (p: { name: string; variant: string | null }): string =>
-  p.variant && !p.name.toLowerCase().includes(p.variant.toLowerCase()) ? `${p.name} · ${p.variant}` : p.name;
+/** Offers depend on the model, never the colour, so only the product name is shown ("iPhone 15 128GB"). */
+export const deviceLabel = (p: { name: string }): string => p.name;
 
 /** The single device search that drives both offer panels. */
 export function DeviceSearch() {
@@ -64,10 +64,19 @@ export function DeviceSearch() {
   const results = useMemo(() => {
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
     if (words.length === 0) return [];
+    // Search the model name only (not colour or other variants), and list each model once even if it
+    // comes in several colours. Any one of its products stands for the model.
+    const seen = new Set<string>();
     return products
       .filter((p) => {
-        const hay = `${p.name} ${p.variant ?? ''} ${p.category} ${p.sku}`.toLowerCase();
+        const hay = `${p.name} ${p.category}`.toLowerCase();
         return words.every((w) => hay.includes(w));
+      })
+      .filter((p) => {
+        const key = `${p.category}|${p.name.toLowerCase()}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
       })
       .sort((a, b) => (DEVICE_RANK[a.category] ?? 9) - (DEVICE_RANK[b.category] ?? 9) || a.name.localeCompare(b.name));
   }, [products, query]);
