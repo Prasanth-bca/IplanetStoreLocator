@@ -4,6 +4,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AlertTriangle, Loader2, RotateCcw, Send, Square, X } from 'lucide-react';
 import { AssistantAvatar } from '@/components/AssistantAvatar';
+import { createQuotePicker } from '@/lib/chat/quotes';
+
+const QUOTE_EVERY_MS = 30_000;
+const QUOTE_FIRST_DELAY_MS = 1500;
+const QUOTE_SHOW_MS = 6000;
 import { useCurrentUser } from '@/lib/useCurrentUser';
 
 interface Msg {
@@ -50,6 +55,10 @@ export function ChatWidget() {
   const abortRef = useRef<AbortController | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // The motivational line in the speech bubble: { text, n } where n restarts the animation for each new line.
+  const [quote, setQuote] = useState<{ text: string; n: number } | null>(null);
+  const pickQuote = useRef(createQuotePicker());
+  const quoteCount = useRef(0);
 
   // Is the assistant switched on? Asked once per page load, and only for signed-in people.
   useEffect(() => {
@@ -112,6 +121,35 @@ export function ChatWidget() {
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
   }, [open]);
+
+  // A short motivational line pops up beside the assistant when a page opens, then every 30 seconds.
+  // Only while the button is showing and the chat is closed; nothing runs on the login page or when a tab is in the background.
+  const showQuotes = !!user && available && !open && !pathname?.startsWith('/login');
+  useEffect(() => {
+    if (!showQuotes) {
+      setQuote(null);
+      return;
+    }
+    let hide: ReturnType<typeof setTimeout> | undefined;
+    const show = () => {
+      if (document.visibilityState !== 'visible') return;
+      clearTimeout(hide);
+      setQuote({ text: pickQuote.current(), n: ++quoteCount.current });
+      hide = setTimeout(() => setQuote(null), QUOTE_SHOW_MS);
+    };
+    let every: ReturnType<typeof setInterval> | undefined;
+    // the 30-second beat starts when the first quote appears, so the gap between quotes is a true 30 seconds
+    const first = setTimeout(() => {
+      show();
+      every = setInterval(show, QUOTE_EVERY_MS);
+    }, QUOTE_FIRST_DELAY_MS);
+    return () => {
+      clearTimeout(first);
+      clearInterval(every);
+      clearTimeout(hide);
+    };
+    // pathname: opening another page counts as "a page opens" and starts the cycle again
+  }, [showQuotes, pathname]);
 
   const stop = useCallback(() => abortRef.current?.abort(), []);
 
@@ -286,6 +324,15 @@ export function ChatWidget() {
             <p className="mt-1.5 text-center text-[10px] text-gray-400">AI can make mistakes. It can’t see live stock, prices or offers: use the app screens for those.</p>
           </form>
         </section>
+      )}
+
+      {quote && (
+        <div aria-hidden className="pointer-events-none fixed bottom-[88px] right-4 z-[69] max-w-[min(230px,calc(100vw-2rem))] sm:bottom-[96px] sm:right-5">
+          <div key={quote.n} className="chat-quote relative rounded-2xl border border-gray-200 bg-white/95 px-3.5 py-2 text-[13px] font-semibold leading-snug text-gray-800 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-pal-card-dark/95 dark:text-gray-100">
+            {quote.text}
+            <span className="absolute -bottom-1.5 right-7 h-3 w-3 rotate-45 border-b border-r border-gray-200 bg-white/95 dark:border-white/10 dark:bg-pal-card-dark/95" />
+          </div>
+        </div>
       )}
 
       <button
