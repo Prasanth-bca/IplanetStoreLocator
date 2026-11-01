@@ -67,7 +67,7 @@ function LoginForm() {
         {/* title: sits low on every screen so the agent's face stays clear */}
         <header className="login-title flex flex-col justify-end text-white">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/40 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md">
-            <BrandMark size={18} className="-ml-1" />
+            <BrandMark size={22} className="-ml-1.5 rounded-full" />
             iPlanet CEC Connect
           </span>
           <p className="mb-3 mt-1.5 pl-1 text-sm font-medium text-white/90 drop-shadow">One click, everything connected</p>

@@ -54,7 +54,7 @@ export const Navbar: React.FC = () => {
           {/* logo mark: a half-cut apple */}
           <div className="relative">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pal-bar-dark to-pal-brand-dark flex items-center justify-center shadow-md group-hover:shadow-lg transition-all group-hover:scale-105">
-              <BrandMark size={26} />
+              <BrandMark size={36} className="rounded-xl" />
             </div>
           </div>
           <div className="flex flex-col leading-none">

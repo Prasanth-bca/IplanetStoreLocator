@@ -158,7 +158,7 @@ export default function HomePage() {
       <header className="border-b border-black/5 dark:border-white/10 bg-white/70 dark:bg-pal-bar-dark/70 backdrop-blur-md">
         <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pal-bar-dark to-pal-brand-dark shadow-md"><BrandMark size={26} /></div>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pal-bar-dark to-pal-brand-dark shadow-md"><BrandMark size={36} className="rounded-xl" /></div>
           <div className="flex flex-col leading-none">
             <span className="text-[17px] font-extrabold tracking-tight text-gray-950 dark:text-white">iPlanet</span>
             <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 tracking-wider uppercase">CEC Connect</span>
