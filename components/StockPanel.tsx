@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { MessageCircle, Package, Search, Tag, X } from 'lucide-react';
 import { useOffersOptional } from '@/components/offers/OffersContext';
 import { EnquiryForm } from '@/components/EnquiryForm';
+import { useCurrentUser } from '@/lib/useCurrentUser';
 import { Status, StatusPill, timeAgo } from '@/components/stockUi';
 
 interface StockItem {
@@ -64,6 +65,9 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
   const [enquiryProduct, setEnquiryProduct] = useState<string | null>(null);
   const [enquiryKey, setEnquiryKey] = useState(0);
 
+  // Service users can't pass leads, so they don't get the enquiry buttons.
+  const { user: me } = useCurrentUser();
+  const canEnquire = me?.role !== 'SERVICE';
   const openEnquiry = (product: string) => {
     setEnquiryProduct(product);
     setEnquiryKey(k => k + 1);
@@ -119,14 +123,14 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <button
+          {canEnquire && (<button
             type="button"
             onClick={() => openEnquiry('')}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition"
           >
             <MessageCircle className="w-3.5 h-3.5" />
             <span>Pass to Store</span>
-          </button>
+          </button>)}
           {onClose && (
             <button onClick={onClose} aria-label="Hide stock" className="p-1.5 -mr-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500">
               <X className="w-4 h-4" />
@@ -245,13 +249,13 @@ export const StockPanel: React.FC<StockPanelProps> = ({ posCode, storeName, onCl
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-gray-900 dark:text-white sm:truncate">{it.name}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 sm:truncate">{it.variant ?? 'Standard'}</div>
-                        <button
+                        {canEnquire && (<button
                           type="button"
                           onClick={() => openEnquiry(it.variant ? `${it.name} – ${it.variant}` : it.name)}
                           className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
                         >
                           <MessageCircle className="w-3 h-3" /> Enquire
-                        </button>
+                        </button>)}
                         {offers && (
                           <button
                             type="button"

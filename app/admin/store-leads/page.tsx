@@ -103,7 +103,7 @@ export default function AdminStoreLeadsPage() {
           <div className="flex flex-wrap items-center gap-3">
             <PeriodPicker value={period} onChange={setPeriod} today={today} allowAll />
             <select value={posCode} onChange={(e) => setPosCode(e.target.value)} aria-label="Filter by store" className={`${fieldCls} w-auto`}><option value="">All stores</option>{data?.filters.stores.map((x) => <option key={x.posCode} value={x.posCode}>{x.label} ({x.count})</option>)}</select>
-            <select value={userId} onChange={(e) => setUserId(e.target.value)} aria-label="Filter by sales user" className={`${fieldCls} w-auto`}><option value="">All sales users</option>{data?.filters.sales.map((x) => <option key={x.id} value={x.id}>{x.label} ({x.count})</option>)}</select>
+            <select value={userId} onChange={(e) => setUserId(e.target.value)} aria-label="Filter by CEC user" className={`${fieldCls} w-auto`}><option value="">All sales users</option>{data?.filters.sales.map((x) => <option key={x.id} value={x.id}>{x.label} ({x.count})</option>)}</select>
           </div>
           <div role="group" aria-label="Status" className="flex flex-wrap gap-1.5">
             {FILTERS.map(([k, label]) => <button key={k} type="button" aria-pressed={status === k} onClick={() => setStatus(k)} className={`rounded-full border px-3 py-1 text-xs font-bold transition ${status === k ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 text-gray-600 hover:border-blue-300 dark:border-white/10 dark:text-gray-300'}`}>{label}</button>)}
@@ -136,7 +136,7 @@ export default function AdminStoreLeadsPage() {
 
             <section className="space-y-5 rounded-3xl border border-gray-200/80 bg-white p-4 dark:border-white/10 dark:bg-pal-card-dark">
               <GroupTable title="Store-wise distribution and conversion" rows={data.byStore} firstCol="Store" />
-              <GroupTable title="Sales-user-wise distribution" rows={data.bySales} firstCol="Sales user" />
+              <GroupTable title="CEC-user-wise distribution" rows={data.bySales} firstCol="CEC user" />
             </section>
 
             <section className="space-y-2 rounded-3xl border border-gray-200/80 bg-white p-4 dark:border-white/10 dark:bg-pal-card-dark">

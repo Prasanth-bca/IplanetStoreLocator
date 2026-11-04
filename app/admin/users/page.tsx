@@ -42,9 +42,12 @@ function generatePassword(): string {
 const fmtLogin = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Never';
 
+const ROLES_ORDER: Role[] = ['ADMIN', 'SALES', 'SERVICE', 'STORE'];
+
 export default function UsersAdminPage() {
   const { user: me } = useCurrentUser();
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [roleFilter, setRoleFilter] = useState<'ALL' | Role>('ALL');
   const [loading, setLoading] = useState(true);
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null);
@@ -108,7 +111,7 @@ export default function UsersAdminPage() {
         <div className="rounded-2xl bg-sky-50 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 px-4 py-3 text-sm text-sky-900 dark:text-sky-200 flex gap-2.5">
           <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" />
           <p>
-            <strong>Admins</strong> can use everything. <strong>Sales users</strong> can use the Store Finder, view Stock and Products, and see only their own passed leads.
+            <strong>Admins</strong> can use everything. <strong>CEC users</strong> can use the Store Finder, view Stock and Products, and see only their own passed leads. <strong>Service users</strong> can use the same tools except passing or sharing leads.
           </p>
         </div>
 
@@ -121,6 +124,23 @@ export default function UsersAdminPage() {
         )}
 
         {!loading && users.length > 0 && (
+          <div role="group" aria-label="Filter by role" className="flex flex-wrap items-center gap-1.5">
+            {(['ALL', ...ROLES_ORDER] as const).map(r => {
+              const n = r === 'ALL' ? users.length : users.filter(u => u.role === r).length;
+              if (r !== 'ALL' && n === 0 && r !== 'SERVICE') return null;
+              return (
+                <button key={r} type="button" aria-pressed={roleFilter === r} onClick={() => setRoleFilter(r)} className={`rounded-full border px-3 py-1 text-xs font-bold transition ${roleFilter === r ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-blue-300'}`}>
+                  {r === 'ALL' ? 'All roles' : ROLE_LABEL[r]} <span className="opacity-70">· {n}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {!loading && users.length > 0 && users.every(u => roleFilter !== 'ALL' && u.role !== roleFilter) && (
+          <p className="rounded-2xl border border-dashed border-gray-300 dark:border-white/15 px-4 py-6 text-center text-sm text-gray-500">No one has the {ROLE_LABEL[roleFilter as Role]} role yet.</p>
+        )}
+
+        {!loading && users.length > 0 && (
           <div className="bg-white dark:bg-pal-card-dark rounded-3xl border border-gray-200/80 dark:border-white/10 overflow-hidden">
             <div className="hidden md:grid grid-cols-[minmax(0,1.6fr)_120px_120px_70px_130px] gap-4 px-5 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 border-b border-gray-100 dark:border-white/10">
               <span>Person</span>
@@ -130,7 +150,7 @@ export default function UsersAdminPage() {
               <span className="text-right">Actions</span>
             </div>
             <ul className="divide-y divide-gray-100 dark:divide-white/5">
-              {users.map(u => {
+              {users.filter(u => roleFilter === 'ALL' || u.role === roleFilter).map(u => {
                 const isMe = u.id === me?.id;
                 return (
                   <li key={u.id} className="grid grid-cols-1 md:grid-cols-[minmax(0,1.6fr)_120px_120px_70px_160px] items-center gap-x-4 gap-y-2 px-5 py-3">

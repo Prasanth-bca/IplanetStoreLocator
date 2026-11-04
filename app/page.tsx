@@ -20,7 +20,7 @@ interface Destination {
 }
 
 const FINDER: Destination = {
-  roles: ['ADMIN', 'SALES'],
+  roles: ['ADMIN', 'SALES', 'SERVICE'],
   href: '/locator',
   title: 'Store Finder',
   description: 'Find the nearest iPlanet store or Care centre by PIN code, area, landmark or your current location, with distance, travel time and directions.',
@@ -30,7 +30,7 @@ const FINDER: Destination = {
 
 const TOOLS: Destination[] = [
   {
-    roles: ['ADMIN', 'SALES', 'STORE'],
+    roles: ['ADMIN', 'SALES', 'SERVICE', 'STORE'],
     href: '/market',
     title: 'Market Price & Offers',
     description: 'Compare Apple device prices and current online offers across major Indian shopping platforms.',
@@ -54,7 +54,7 @@ const TOOLS: Destination[] = [
     tint: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400',
   },
   {
-    roles: ['SALES'],
+    roles: ['SALES', 'SERVICE'],
     href: '/stock',
     title: 'Stock',
     description: 'See what each store has in stock right now, and pass a customer enquiry to the store.',
@@ -70,7 +70,7 @@ const TOOLS: Destination[] = [
     tint: 'bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400',
   },
   {
-    roles: ['SALES'],
+    roles: ['SALES', 'SERVICE'],
     href: '/products',
     title: 'Products',
     description: 'Browse the product catalogue and see how much stock there is across the stores.',
@@ -78,7 +78,7 @@ const TOOLS: Destination[] = [
     tint: 'bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400',
   },
   {
-    roles: ['ADMIN', 'SALES'],
+    roles: ['ADMIN', 'SALES', 'SERVICE'],
     href: '/billing-notes',
     title: 'Billing notes',
     description: 'Note customers who were billed on a different phone number from the one you spoke to, so billing can match the sale.',

@@ -4,16 +4,16 @@
  * allowlist and everything else is denied by default.
  */
 
-export type Role = 'ADMIN' | 'SALES' | 'STORE';
-export const ROLES: readonly Role[] = ['ADMIN', 'SALES', 'STORE'];
+export type Role = 'ADMIN' | 'SALES' | 'SERVICE' | 'STORE';
+export const ROLES: readonly Role[] = ['ADMIN', 'SALES', 'SERVICE', 'STORE'];
 /** Roles an admin may pick when creating or editing a person on the Users page. A STORE login is tied to one store, so it is created from the Store accounts page instead. */
-export const ASSIGNABLE_ROLES: readonly Role[] = ['ADMIN', 'SALES'];
+export const ASSIGNABLE_ROLES: readonly Role[] = ['ADMIN', 'SALES', 'SERVICE'];
 
 export function isRole(value: unknown): value is Role {
-  return value === 'ADMIN' || value === 'SALES' || value === 'STORE';
+  return value === 'ADMIN' || value === 'SALES' || value === 'SERVICE' || value === 'STORE';
 }
 
-export const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', SALES: 'Sales user', STORE: 'Store user' };
+export const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', SALES: 'CEC user', SERVICE: 'Service user', STORE: 'Store user' };
 
 interface Rule {
   /** Exact path, or a RegExp tested against the whole path. */
@@ -67,6 +67,13 @@ const SALES_ALLOWED: Rule[] = [
 ];
 
 /**
+ * A service user can use everything a sales user can except passing or sharing leads (and the lead histories
+ * that go with them).
+ */
+const LEAD_ONLY_PATHS = new Set(['/my-leads', '/share-lead', '/api/leads', '/api/my/leads', '/api/store-leads', '/api/store-leads/stores']);
+const SERVICE_ALLOWED: Rule[] = SALES_ALLOWED.filter(r => !(typeof r.path === 'string' && LEAD_ONLY_PATHS.has(r.path)));
+
+/**
  * A store login sees only its own store's received leads. Everything else is denied, and the routes
  * behind these paths check again that the lead belongs to the signed-in store.
  */
@@ -99,7 +106,7 @@ export function canAccess(role: Role, pathname: string, method = 'GET'): boolean
   if (role === 'ADMIN') return true;
   const path = norm(pathname);
   const verb = method.toUpperCase();
-  const rules = role === 'STORE' ? STORE_ALLOWED : SALES_ALLOWED;
+  const rules = role === 'STORE' ? STORE_ALLOWED : role === 'SERVICE' ? SERVICE_ALLOWED : SALES_ALLOWED;
   return rules.some(rule => {
     const matches = typeof rule.path === 'string' ? rule.path === path : rule.path.test(path);
     if (!matches) return false;

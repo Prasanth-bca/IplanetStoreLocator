@@ -71,6 +71,29 @@ export default function StoreAccountsPage() {
     }
   };
 
+  const [resetting, setResetting] = useState<string | null>(null);
+  const reset = async (st: StoreRow, own: boolean) => {
+    let password: string | undefined;
+    if (own) {
+      const typed = window.prompt(`New password for ${st.account?.username} (at least 8 characters). Everyone using this login will be signed out.`);
+      if (!typed) return;
+      password = typed;
+    } else if (!window.confirm(`Make a new random password for ${st.storeName} (${st.account?.username})?\n\nThe old password stops working and everyone signed in with this login is signed out.`)) return;
+    setResetting(st.posCode);
+    try {
+      const res = await fetch('/api/admin/store-accounts/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ posCode: st.posCode, ...(password ? { password } : {}) }) });
+      const b = await res.json().catch(() => ({}));
+      if (!res.ok) { setSkipped([{ posCode: st.posCode, reason: b.error || 'The password could not be reset.' }]); return; }
+      setSkipped([]);
+      setCopied(false);
+      setCreated([{ posCode: b.posCode, storeName: b.storeName, username: b.username, password: b.password }]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setResetting(null);
+      load();
+    }
+  };
+
   const text = () => ['Store\tPOS code\tUsername\tPassword', ...created.map((c) => `${c.storeName}\t${c.posCode}\t${c.username}\t${c.password}`)].join('\n');
   const copy = async () => { try { await navigator.clipboard.writeText(text()); setCopied(true); } catch { /* the table below can be selected by hand */ } };
   const download = () => {
@@ -97,7 +120,7 @@ export default function StoreAccountsPage() {
       <main className="w-full space-y-4 px-4 py-6 sm:px-6 lg:px-8 2xl:px-12">
         <section className="rounded-3xl border border-gray-200/80 bg-white p-5 dark:border-white/10 dark:bg-pal-card-dark">
           <h2 className="text-base font-bold text-gray-900 dark:text-white">One login for every retail store</h2>
-          <p className="mt-1 max-w-3xl text-sm text-gray-600 dark:text-gray-300">Each store logs in with its own username and password and sees only the leads sent to its own POS code. Usernames look like <code className="rounded bg-gray-100 px-1 dark:bg-white/10">store.pbz1</code>. Passwords are random and shown <strong>once</strong>, right after they are created. To change one later, use <Link href="/admin/users" className="font-semibold text-blue-600 underline">Users</Link> and reset the password.</p>
+          <p className="mt-1 max-w-3xl text-sm text-gray-600 dark:text-gray-300">Each store logs in with its own username and password and sees only the leads sent to its own POS code. Usernames look like <code className="rounded bg-gray-100 px-1 dark:bg-white/10">store.pbz1</code>. Passwords are random and shown <strong>once</strong>, right after they are created. A password can’t be looked up later (it is stored scrambled), so use <strong>Reset password</strong> on a store’s row to make a new one, shown once, or <strong>Set my own</strong>. A store login can be used by several staff at the same time with the same ID and password.</p>
         </section>
 
         {error ? (
@@ -106,7 +129,7 @@ export default function StoreAccountsPage() {
           <>
             {created.length > 0 && (
               <section role="status" className="space-y-3 rounded-3xl border-2 border-emerald-400 bg-emerald-50/70 p-5 dark:border-emerald-700 dark:bg-emerald-950/20">
-                <h2 className="flex items-center gap-2 text-sm font-extrabold text-emerald-900 dark:text-emerald-200"><CheckCircle className="h-4 w-4" /> {created.length} store login{created.length === 1 ? '' : 's'} created. Save these passwords now: they cannot be shown again.</h2>
+                <h2 className="flex items-center gap-2 text-sm font-extrabold text-emerald-900 dark:text-emerald-200"><CheckCircle className="h-4 w-4" /> {created.length} store login{created.length === 1 ? "" : "s"} ready. Save these passwords now: they cannot be shown again.</h2>
                 <div className="flex flex-wrap gap-2">
                   <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-bold text-gray-800 shadow-sm dark:bg-white/10 dark:text-white"><Copy className="h-3.5 w-3.5" />{copied ? 'Copied' : 'Copy all'}</button>
                   <button type="button" onClick={download} className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-bold text-gray-800 shadow-sm dark:bg-white/10 dark:text-white"><Download className="h-3.5 w-3.5" />Download CSV</button>
@@ -128,13 +151,18 @@ export default function StoreAccountsPage() {
               </div>
               <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-white/10">
                 <table className="w-full min-w-[640px] text-xs">
-                  <thead><tr className="bg-gray-50 text-left text-[10.5px] uppercase tracking-wide text-gray-500 dark:bg-white/5"><th className="w-10 px-3 py-2" /><th className="px-3 py-2">Store</th><th className="px-3 py-2">POS</th><th className="px-3 py-2">City</th><th className="px-3 py-2">Login</th><th className="px-3 py-2">Last sign-in</th></tr></thead>
+                  <thead><tr className="bg-gray-50 text-left text-[10.5px] uppercase tracking-wide text-gray-500 dark:bg-white/5"><th className="w-10 px-3 py-2" /><th className="px-3 py-2">Store</th><th className="px-3 py-2">POS</th><th className="px-3 py-2">City</th><th className="px-3 py-2">Login</th><th className="px-3 py-2">Last sign-in</th><th className="px-3 py-2" /></tr></thead>
                   <tbody>{shown.map((s) => (
                     <tr key={s.posCode} className="border-t border-gray-100 dark:border-white/10">
                       <td className="px-3 py-2">{!s.account && <input type="checkbox" aria-label={`Select ${s.storeName}`} checked={pick.has(s.posCode)} onChange={() => toggle(s.posCode)} disabled={busy} />}</td>
                       <td className="px-3 py-2 font-semibold">{s.storeName}{s.status !== 'Active' && <span className="ml-1.5 text-[10px] font-bold text-gray-400">({s.status})</span>}</td><td className="px-3 py-2">{s.posCode}</td><td className="px-3 py-2">{s.city}</td>
                       <td className="px-3 py-2">{s.account ? <span className="font-mono">{s.account.username}{!s.account.active && <span className="ml-1.5 font-sans font-bold text-red-600">disabled</span>}</span> : <span className="text-gray-400">None yet <span className="font-mono text-gray-300">({s.suggestedUsername})</span></span>}</td>
                       <td className="px-3 py-2 text-gray-500">{s.account?.lastLoginAt ? fmtDateTime(s.account.lastLoginAt) : '—'}</td>
+                      <td className="whitespace-nowrap px-3 py-2 text-right">{s.account && (<>
+                        <button type="button" onClick={() => navigator.clipboard?.writeText(s.account!.username).catch(() => {})} title="Copy the user ID" className="mr-1 rounded-lg px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10">Copy ID</button>
+                        <button type="button" onClick={() => reset(s, false)} disabled={resetting === s.posCode} className="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 disabled:opacity-50 dark:bg-blue-950/40 dark:text-blue-300">{resetting === s.posCode ? 'Resetting…' : 'Reset password'}</button>
+                        <button type="button" onClick={() => reset(s, true)} disabled={resetting === s.posCode} className="ml-1 rounded-lg px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10">Set my own</button>
+                      </>)}</td>
                     </tr>))}</tbody>
                 </table>
               </div>

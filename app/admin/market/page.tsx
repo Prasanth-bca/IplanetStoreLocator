@@ -96,7 +96,7 @@ export default function AdminMarketPage() {
         <section className="max-w-4xl space-y-3 rounded-3xl border border-gray-200/80 bg-white p-5 dark:border-white/10 dark:bg-pal-card-dark">
           <h2 className="text-base font-bold text-gray-900 dark:text-white">Who can open it</h2>
           <p className="text-xs text-gray-500">Admins can always open it. Switching a role off hides the home-page card and blocks the page and its data for that role.</p>
-          {[['salesEnabled', 'Sales users'], ['storeEnabled', 'Store users']].map(([k, label]) => (
+          {[['salesEnabled', 'CEC users'], ['storeEnabled', 'Store users']].map(([k, label]) => (
             <label key={k} className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 px-4 py-3 text-sm font-semibold dark:border-white/10">
               {label}
               <input type="checkbox" role="switch" className="h-5 w-5 accent-blue-600" disabled={!settings} checked={settings ? settings[k as 'salesEnabled'] : false} onChange={(e) => settings && saveSettings({ salesEnabled: settings.salesEnabled, storeEnabled: settings.storeEnabled, [k]: e.target.checked })} />

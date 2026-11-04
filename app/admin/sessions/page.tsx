@@ -133,7 +133,7 @@ export default function AdminSessionsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'SALES'>('ALL');
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'SALES' | 'SERVICE' | 'STORE'>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOGGED_OUT' | 'REVOKED' | 'FAILED'>('ALL');
   const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
@@ -428,7 +428,9 @@ export default function AdminSessionsPage() {
             >
               <option value="ALL">All Roles</option>
               <option value="ADMIN">Admins Only</option>
-              <option value="SALES">Sales Only</option>
+              <option value="SALES">CEC Only</option>
+              <option value="SERVICE">Service Only</option>
+              <option value="STORE">Store Only</option>
             </select>
 
             {tab === 'history' && (
@@ -656,7 +658,9 @@ export default function AdminSessionsPage() {
                             {s.role === 'ADMIN' ? (
                               <span className="font-semibold text-purple-600 dark:text-purple-400">Admin</span>
                             ) : s.role === 'SALES' ? (
-                              <span className="font-semibold text-blue-600 dark:text-blue-400">Sales</span>
+                              <span className="font-semibold text-blue-600 dark:text-blue-400">CEC</span>
+                            ) : s.role === 'SERVICE' ? (
+                              <span className="font-semibold text-indigo-600 dark:text-indigo-400">Service</span>
                             ) : s.role === 'STORE' ? (
                               <span className="font-semibold text-emerald-600 dark:text-emerald-400">Store</span>
                             ) : (

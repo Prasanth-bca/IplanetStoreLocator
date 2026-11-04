@@ -165,7 +165,7 @@ test('a SALES user can share and follow their own leads, but cannot open the sto
 test('an admin can reach everything', () => { for (const p of ['/admin/store-leads', '/api/admin/store-leads', '/api/store/leads/x', '/share-lead', '/store-leads']) assert.equal(canAccess('ADMIN', p, 'GET'), true); });
 test('STORE is a real role, but the Users page cannot assign it (it is created from Store accounts, tied to one store)', () => {
   assert.equal(isRole('STORE'), true); assert.equal(isRole('BOSS'), false);
-  assert.deepEqual([...ASSIGNABLE_ROLES], ['ADMIN', 'SALES']); assert.equal(parseRole('STORE'), null); assert.equal(parseRole('SALES'), 'SALES'); assert.equal(parseRole('ADMIN'), 'ADMIN');
+  assert.deepEqual([...ASSIGNABLE_ROLES], ['ADMIN', 'SALES', 'SERVICE']); assert.equal(parseRole('STORE'), null); assert.equal(parseRole('SALES'), 'SALES'); assert.equal(parseRole('SERVICE'), 'SERVICE'); assert.equal(parseRole('ADMIN'), 'ADMIN');
 });
 
 test('store usernames come from the POS code and always satisfy the username rules', () => {

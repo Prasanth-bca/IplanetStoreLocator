@@ -66,5 +66,9 @@ t('search link', platformSearchUrl('AMAZON', 'iPhone 17 Pro 256GB')?.startsWith(
 t('sales opens market', canAccess('SALES', '/market') && canAccess('SALES', '/api/market/search') && canAccess('SALES', '/api/market/refresh', 'POST') && !canAccess('SALES', '/api/market/refresh', 'GET'));
 t('store may reach market (setting decides)', canAccess('STORE', '/market') && canAccess('STORE', '/api/market/access'));
 t('admin market is admin only', !canAccess('SALES', '/admin/market') && !canAccess('SALES', '/api/admin/market/prices') && !canAccess('STORE', '/api/admin/market/settings') && canAccess('ADMIN', '/admin/market'));
+t('service: finder/stock/products ok', canAccess('SERVICE', '/locator') && canAccess('SERVICE', '/stock') && canAccess('SERVICE', '/api/products') && canAccess('SERVICE', '/market'));
+t('service: no lead sharing or history', !canAccess('SERVICE', '/share-lead') && !canAccess('SERVICE', '/my-leads') && !canAccess('SERVICE', '/api/leads', 'POST') && !canAccess('SERVICE', '/api/my/leads') && !canAccess('SERVICE', '/api/store-leads', 'POST'));
+t('service: no admin', !canAccess('SERVICE', '/admin') && !canAccess('SERVICE', '/api/admin/users'));
+t('sales still shares leads', canAccess('SALES', '/share-lead') && canAccess('SALES', '/api/leads', 'POST'));
 console.log(`${pass} passed${fail ? `, ${fail} FAILED` : ''}`);
 process.exit(fail ? 1 : 0);

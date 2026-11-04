@@ -63,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (Object.keys(data).length === 0) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
 
     // Safety rails against locking everyone out.
-    if (target.id === auth.user.id && (newRole === 'SALES' || newActive === false)) {
+    if (target.id === auth.user.id && ((newRole !== undefined && newRole !== 'ADMIN') || newActive === false)) {
       return NextResponse.json({ error: 'You can’t remove your own admin access or disable your own account.' }, { status: 400 });
     }
     const targetRole = target.role as Role;

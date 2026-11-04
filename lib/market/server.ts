@@ -25,7 +25,7 @@ export async function getMarketAccess(): Promise<MarketAccess> {
   return value;
 }
 
-export const roleMayOpen = (role: SessionUser['role'], a: MarketAccess) => role === 'ADMIN' || (role === 'SALES' && a.salesEnabled) || (role === 'STORE' && a.storeEnabled);
+export const roleMayOpen = (role: SessionUser['role'], a: MarketAccess) => role === 'ADMIN' || ((role === 'SALES' || role === 'SERVICE') && a.salesEnabled) || (role === 'STORE' && a.storeEnabled);
 
 /** For the routes sales/store users call: signed in, and the admin has switched the module on for their role. */
 export async function requireMarketAccess(request: NextRequest): Promise<{ ok: true; user: SessionUser } | { ok: false; response: NextResponse }> {
