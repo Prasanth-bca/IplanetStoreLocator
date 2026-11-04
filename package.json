@@ -14,7 +14,9 @@
     "db:seed-products": "tsx prisma/seed-products.ts",
     "test:offers": "tsx scripts/test_offers.ts",
     "test:chat": "tsx scripts/test_chat.ts",
-    "test:billing": "tsx scripts/test_billing.ts"
+    "test:billing": "tsx scripts/test_billing.ts",
+    "test:storeleads": "tsx scripts/test_storeleads.ts",
+    "test:market": "tsx scripts/test_market.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

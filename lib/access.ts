@@ -4,14 +4,16 @@
  * allowlist and everything else is denied by default.
  */
 
-export type Role = 'ADMIN' | 'SALES';
-export const ROLES: readonly Role[] = ['ADMIN', 'SALES'];
+export type Role = 'ADMIN' | 'SALES' | 'STORE';
+export const ROLES: readonly Role[] = ['ADMIN', 'SALES', 'STORE'];
+/** Roles an admin may pick when creating or editing a person on the Users page. A STORE login is tied to one store, so it is created from the Store accounts page instead. */
+export const ASSIGNABLE_ROLES: readonly Role[] = ['ADMIN', 'SALES'];
 
 export function isRole(value: unknown): value is Role {
-  return value === 'ADMIN' || value === 'SALES';
+  return value === 'ADMIN' || value === 'SALES' || value === 'STORE';
 }
 
-export const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', SALES: 'Sales user' };
+export const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', SALES: 'Sales user', STORE: 'Store user' };
 
 interface Rule {
   /** Exact path, or a RegExp tested against the whole path. */
@@ -52,6 +54,43 @@ const SALES_ALLOWED: Rule[] = [
   // APIs: passing a lead and reading their own history
   { path: '/api/leads', methods: ['POST'] },
   { path: '/api/my/leads' },
+  // Sharing a lead directly with a store, and following what happened to the ones they shared (the routes show only their own)
+  { path: '/share-lead' },
+  { path: '/api/store-leads', methods: ['GET', 'POST'] },
+  { path: '/api/store-leads/stores' },
+  // Market Price & Offers: the routes also check that the admin has switched it on for the role
+  { path: '/market' },
+  { path: '/api/market/access' },
+  { path: '/api/market/search' },
+  { path: '/api/market/suggest' },
+  { path: '/api/market/refresh', methods: ['POST'] },
+];
+
+/**
+ * A store login sees only its own store's received leads. Everything else is denied, and the routes
+ * behind these paths check again that the lead belongs to the signed-in store.
+ */
+const STORE_ALLOWED: Rule[] = [
+  // Pages
+  { path: '/' },
+  { path: '/store-leads' },
+  { path: '/account' },
+  // APIs: identity and sign-out
+  { path: '/api/me' },
+  { path: '/api/me/password', methods: ['POST'] },
+  { path: '/api/me/heartbeat', methods: ['POST'] },
+  { path: '/api/logout', methods: ['POST'] },
+  // APIs: received leads, follow-up updates and alerts
+  { path: '/api/store/leads' },
+  { path: /^\/api\/store\/leads\/[^/]+$/, methods: ['GET', 'PATCH'] },
+  { path: '/api/lead-alerts' },
+  { path: '/api/lead-alerts/read', methods: ['POST'] },
+  // Market Price & Offers: the routes also check that the admin has switched it on for the role
+  { path: '/market' },
+  { path: '/api/market/access' },
+  { path: '/api/market/search' },
+  { path: '/api/market/suggest' },
+  { path: '/api/market/refresh', methods: ['POST'] },
 ];
 
 const norm = (p: string) => (p.length > 1 ? p.replace(/\/+$/, '') : p);
@@ -60,7 +99,8 @@ export function canAccess(role: Role, pathname: string, method = 'GET'): boolean
   if (role === 'ADMIN') return true;
   const path = norm(pathname);
   const verb = method.toUpperCase();
-  return SALES_ALLOWED.some(rule => {
+  const rules = role === 'STORE' ? STORE_ALLOWED : SALES_ALLOWED;
+  return rules.some(rule => {
     const matches = typeof rule.path === 'string' ? rule.path === path : rule.path.test(path);
     if (!matches) return false;
     const allowed = rule.methods ?? ['GET', 'HEAD'];
@@ -80,6 +120,9 @@ export const APP_PAGES: readonly string[] = [
   '/products',
   '/my-leads',
   '/billing-notes',
+  '/share-lead',
+  '/store-leads',
+  '/market',
   '/account',
   '/admin',
   '/admin/stock',
@@ -89,6 +132,9 @@ export const APP_PAGES: readonly string[] = [
   '/admin/sessions',
   '/admin/offers',
   '/admin/chatbot',
+  '/admin/store-leads',
+  '/admin/store-accounts',
+  '/admin/market',
 ];
 
 /** True if the path (ignoring any ?query or #hash) is one of the app's pages. */

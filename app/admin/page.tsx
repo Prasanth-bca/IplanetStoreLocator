@@ -3,30 +3,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 import { Store, StoreStatus } from '@/types/store';
-import {
-  ArrowLeft,
-  Upload,
-  Plus,
-  Search,
-  Trash2,
-  CheckCircle,
-  AlertTriangle,
-  Loader2,
-  Download,
-  Store as StoreIcon,
-  Wrench,
-  Layers,
-  MapPin,
-  LogOut,
-  Package,
-  Home,
-  MessageCircle,
-  Users,
-  Tag, Bot } from 'lucide-react';
+import { ArrowLeft, Upload, Plus, Search, Trash2, CheckCircle, AlertTriangle, Loader2, Download, Store as StoreIcon, Wrench, Layers, MapPin, LogOut, Package, Home, MessageCircle, Users, Tag, Bot, Inbox, Pencil } from 'lucide-react';
 import { PalettePicker } from '@/components/PalettePicker';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ViewToggle, useViewMode } from '@/components/ViewToggle';
+
+interface StoreForm { posCode: string; storeName: string; storeType: string; address: string; area: string; city: string; state: string; pincode: string; landmark: string; latitude: string; longitude: string; phone: string; storeManager: string; openingTime: string; closingTime: string; workingDays: string; googleMapsUrl: string; status: string }
+const EMPTY_STORE: StoreForm = { posCode: '', storeName: '', storeType: 'Retail', address: '', area: '', city: '', state: 'Tamil Nadu', pincode: '', landmark: '', latitude: '', longitude: '', phone: '080-4699-9888', storeManager: '', openingTime: '10:00 AM', closingTime: '09:30 PM', workingDays: 'Monday to Sunday', googleMapsUrl: '', status: 'Active' };
 
 export default function AdminPage() {
   const router = useRouter();
@@ -54,20 +39,10 @@ export default function AdminPage() {
 
   // Modal for new store
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newStore, setNewStore] = useState({
-    posCode: '',
-    storeName: '',
-    storeType: 'Retail',
-    address: '',
-    area: '',
-    city: '',
-    state: 'Tamil Nadu',
-    pincode: '',
-    landmark: '',
-    latitude: '',
-    longitude: '',
-    phone: '080-4699-9888'
-  });
+  const [newStore, setNewStore] = useState<StoreForm>(EMPTY_STORE);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
   // Import state
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -115,37 +90,48 @@ export default function AdminPage() {
     setCityFilter('ALL');
   };
 
+  const openAdd = () => {
+    setEditingId(null);
+    setNewStore(EMPTY_STORE);
+    setFormErrors([]);
+    setIsAddModalOpen(true);
+  };
+
+  const openEdit = (st: Store) => {
+    setEditingId(st.id);
+    setNewStore({
+      posCode: st.posCode, storeName: st.storeName, storeType: st.storeType, address: st.address, area: st.area ?? '', city: st.city, state: st.state, pincode: st.pincode,
+      landmark: st.landmark ?? '', latitude: st.latitude === null ? '' : String(st.latitude), longitude: st.longitude === null ? '' : String(st.longitude), phone: st.phone ?? '',
+      storeManager: st.storeManager ?? '', openingTime: st.openingTime ?? '', closingTime: st.closingTime ?? '', workingDays: st.workingDays ?? '', googleMapsUrl: st.googleMapsUrl ?? '', status: st.status,
+    });
+    setFormErrors([]);
+    setIsAddModalOpen(true);
+  };
+
   const handleCreateStore = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
+    setFormErrors([]);
     try {
-      const res = await fetch('/api/admin/stores', {
-        method: 'POST',
+      const res = await fetch(editingId ? `/api/admin/stores/${editingId}` : '/api/admin/stores', {
+        method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newStore)
+        body: JSON.stringify({ ...newStore, category: activeCategory }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(data.error || 'Failed to add store');
+        setFormErrors(data.errors ?? [data.error || 'The store could not be saved.']);
         return;
       }
       setIsAddModalOpen(false);
-      setNewStore({
-        posCode: '',
-        storeName: '',
-        storeType: 'Retail',
-        address: '',
-        area: '',
-        city: '',
-        state: 'Tamil Nadu',
-        pincode: '',
-        landmark: '',
-        latitude: '',
-        longitude: '',
-        phone: '080-4699-9888'
-      });
+      setEditingId(null);
+      setNewStore(EMPTY_STORE);
       fetchStores(activeCategory);
-    } catch (err) {
-      alert('Error creating store');
+    } catch {
+      setFormErrors(['Something went wrong. Please check your connection and try again.']);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -282,11 +268,11 @@ export default function AdminPage() {
             <ThemeToggle />
 
             <button
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={openAdd}
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm transition"
             >
               <Plus className="w-4 h-4" />
-              <span>Add New Store</span>
+              <span>{activeCategory === 'Care' ? 'Add Care centre' : 'Add New Store'}</span>
             </button>
 
             <Link
@@ -303,6 +289,13 @@ export default function AdminPage() {
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Monitoring</span>
+            </Link>
+            <Link
+              href="/admin/store-leads"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-semibold transition"
+            >
+              <Inbox className="w-3.5 h-3.5" />
+              <span>Store leads</span>
             </Link>
             <Link
               href="/admin/chatbot"
@@ -625,6 +618,14 @@ export default function AdminPage() {
 
                       <div className="flex items-center justify-end">
                         <button
+                          onClick={() => openEdit(store)}
+                          aria-label={`Edit ${store.posCode}`}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-xl transition"
+                          title="Edit store details"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleDeleteStore(store.id, store.posCode)}
                           aria-label={`Delete ${store.posCode}`}
                           className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition"
@@ -698,6 +699,14 @@ export default function AdminPage() {
                     <div className="mt-auto px-5 py-3 flex items-center justify-between gap-3">
                       {statusSelect(store)}
                       <button
+                        onClick={() => openEdit(store)}
+                        aria-label={`Edit ${store.posCode}`}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-xl transition"
+                        title="Edit store details"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleDeleteStore(store.id, store.posCode)}
                         aria-label={`Delete ${store.posCode}`}
                         className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition"
@@ -715,17 +724,19 @@ export default function AdminPage() {
       </main>
 
       {/* Add Store Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      {isAddModalOpen && typeof document !== 'undefined' && createPortal(
+        <div role="dialog" aria-modal="true" aria-label={editingId ? 'Edit store' : 'Add store'} className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-pal-card-dark rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-white/10 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Add New iPlanet Store</h3>
-            <form onSubmit={handleCreateStore} className="space-y-4 text-xs">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{editingId ? `Edit ${newStore.posCode}` : activeCategory === 'Care' ? 'Add Care / Service centre' : 'Add New iPlanet Store'}</h3>
+            <form onSubmit={handleCreateStore} noValidate className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">POS Code *</label>
                   <input
                     type="text"
                     required
+                    readOnly={!!editingId}
+                    title={editingId ? 'The POS code can’t be changed: stock, leads and logins are tied to it.' : undefined}
                     value={newStore.posCode}
                     onChange={(e) => setNewStore({ ...newStore, posCode: e.target.value.toUpperCase() })}
                     placeholder="e.g. RMM"
@@ -818,6 +829,45 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+                  <input type="text" value={newStore.phone} onChange={(e) => setNewStore({ ...newStore, phone: e.target.value })} className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Store manager</label>
+                  <input type="text" value={newStore.storeManager} onChange={(e) => setNewStore({ ...newStore, storeManager: e.target.value })} className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Opens</label>
+                  <input type="text" value={newStore.openingTime} onChange={(e) => setNewStore({ ...newStore, openingTime: e.target.value })} placeholder="10:00 AM" className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Closes</label>
+                  <input type="text" value={newStore.closingTime} onChange={(e) => setNewStore({ ...newStore, closingTime: e.target.value })} placeholder="09:30 PM" className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Landmark</label>
+                  <input type="text" value={newStore.landmark} onChange={(e) => setNewStore({ ...newStore, landmark: e.target.value })} className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                  <select value={newStore.status} onChange={(e) => setNewStore({ ...newStore, status: e.target.value })} className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white">
+                    <option value="Active">Active</option><option value="Inactive">Inactive</option><option value="TemporarilyClosed">Temporarily closed</option><option value="ComingSoon">Coming soon</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Google Maps link <span className="font-normal text-gray-400">(optional; made from the coordinates if empty)</span></label>
+                <input type="text" value={newStore.googleMapsUrl} onChange={(e) => setNewStore({ ...newStore, googleMapsUrl: e.target.value })} placeholder="https://maps.google.com/…" className="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white" />
+              </div>
+
+              {formErrors.length > 0 && (
+                <ul role="alert" className="space-y-1 rounded-xl bg-red-50 dark:bg-red-950/30 px-3 py-2 text-red-700 dark:text-red-300">
+                  {formErrors.map((er, i) => <li key={i}>{er}</li>)}
+                </ul>
+              )}
+
               <div className="flex items-center justify-end gap-3 pt-4 border-t dark:border-zinc-800">
                 <button
                   type="button"
@@ -828,14 +878,16 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl"
+                  disabled={saving}
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold rounded-xl"
                 >
-                  Save Store
+                  {saving ? 'Saving…' : editingId ? 'Save changes' : 'Save Store'}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

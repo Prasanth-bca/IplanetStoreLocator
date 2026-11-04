@@ -657,6 +657,8 @@ export default function AdminSessionsPage() {
                               <span className="font-semibold text-purple-600 dark:text-purple-400">Admin</span>
                             ) : s.role === 'SALES' ? (
                               <span className="font-semibold text-blue-600 dark:text-blue-400">Sales</span>
+                            ) : s.role === 'STORE' ? (
+                              <span className="font-semibold text-emerald-600 dark:text-emerald-400">Store</span>
                             ) : (
                               <span className="text-gray-400">—</span>
                             )}

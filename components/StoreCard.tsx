@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { StockPanel } from '@/components/StockPanel';
+import { PassToStore } from '@/components/storeLeads/PassToStore';
 import { StoreSearchResult } from '@/types/store';
 import {
   MapPin,
@@ -312,6 +313,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({ result, isSelected, onSele
           </a>
         )}
       </div>
+      <PassToStore posCode={store.posCode} storeName={store.storeName} category={store.category} />
       {showStock && (
         <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           <StockPanel posCode={store.posCode} storeName={store.storeName} onClose={() => setShowStock(false)} />

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { createPortal } from 'react-dom';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -439,7 +440,7 @@ export default function ProductsAdminPage() {
       </main>
 
       {/* Add / edit modal */}
-      {editing && (
+      {editing && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] sm:p-4 animate-fadeIn" onClick={closeForm} role="dialog" aria-modal="true">
           <form
             onSubmit={submit}
@@ -528,11 +529,12 @@ export default function ProductsAdminPage() {
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete confirmation */}
-      {deleting && (
+      {deleting && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px] p-4 animate-fadeIn" onClick={() => setDeleting(null)} role="alertdialog" aria-modal="true">
           <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-pal-card-dark w-full max-w-sm rounded-3xl border border-gray-200 dark:border-white/10 shadow-2xl p-6 animate-fadeInUp">
             <div className="w-11 h-11 rounded-2xl bg-red-50 dark:bg-red-950/40 flex items-center justify-center mb-3">
@@ -551,7 +553,8 @@ export default function ProductsAdminPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {toast && (

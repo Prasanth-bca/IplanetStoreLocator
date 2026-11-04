@@ -2,10 +2,11 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, ArrowLeft, CheckCircle, Copy, Home, Loader2, Pencil, Plus, ShieldCheck, Trash2, UserCheck, UserX, Users, X, KeyRound } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useCurrentUser } from '@/lib/useCurrentUser';
-import { ROLE_LABEL, ROLES, Role } from '@/lib/access';
+import { ASSIGNABLE_ROLES, ROLE_LABEL, Role } from '@/lib/access';
 import { PASSWORD_MIN } from '@/lib/userRules';
 
 interface UserRow {
@@ -242,6 +243,7 @@ function UserDialog({ dialog, me, onClose, onChanged }: { dialog: Dialog; me?: s
   }
 
   const shell = (title: string, body: React.ReactNode, footer: React.ReactNode) => (
+    <>{typeof document !== 'undefined' && createPortal(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] sm:p-4 animate-fadeIn" onClick={() => !busy && onClose()} role="dialog" aria-modal="true" aria-label={title}>
       <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-pal-card-dark w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/10 shadow-2xl animate-fadeInUp">
         <div className="flex items-center justify-between px-5 pt-5">
@@ -251,7 +253,8 @@ function UserDialog({ dialog, me, onClose, onChanged }: { dialog: Dialog; me?: s
         <div className="p-5 space-y-4">{body}</div>
         <div className="px-5 pb-5 flex justify-end gap-2">{footer}</div>
       </div>
-    </div>
+    </div>,
+    document.body)}</>
   );
   const cancel = <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200">Cancel</button>;
   const primary = (label: string, disabled = false, danger = false) => (
@@ -297,7 +300,7 @@ function UserDialog({ dialog, me, onClose, onChanged }: { dialog: Dialog; me?: s
             <label className="block"><span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Full name</span><input autoFocus value={name} onChange={e => setName(e.target.value)} maxLength={80} className={`${field} mt-1`} /></label>
             <label className="block"><span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Username</span><input value={username} onChange={e => setUsername(e.target.value)} autoCapitalize="none" spellCheck={false} placeholder="e.g. priya.s" maxLength={32} className={`${field} mt-1 font-mono`} /></label>
             <label className="block"><span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Role</span>
-              <select value={role} onChange={e => setRole(e.target.value as Role)} className={`${field} mt-1`}>{ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select>
+              <select value={role} onChange={e => setRole(e.target.value as Role)} className={`${field} mt-1`}>{ASSIGNABLE_ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select>
             </label>
             {passwordField}
             {err}
@@ -318,8 +321,9 @@ function UserDialog({ dialog, me, onClose, onChanged }: { dialog: Dialog; me?: s
           <>
             <label className="block"><span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Full name</span><input autoFocus value={name} onChange={e => setName(e.target.value)} maxLength={80} className={`${field} mt-1`} /></label>
             <label className="block"><span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Role</span>
-              <select value={role} onChange={e => setRole(e.target.value as Role)} disabled={isMe} className={`${field} mt-1 disabled:opacity-60`}>{ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select>
+              <select value={role} onChange={e => setRole(e.target.value as Role)} disabled={isMe || u.role === 'STORE'} className={`${field} mt-1 disabled:opacity-60`}>{u.role === 'STORE' && <option value="STORE">{ROLE_LABEL.STORE}</option>}{ASSIGNABLE_ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select>
               {isMe && <span className="text-[11px] text-gray-400">You can’t change your own role.</span>}
+              {u.role === 'STORE' && <span className="text-[11px] text-gray-400">A store login keeps its role. Manage store logins from Store accounts.</span>}
             </label>
             {roleChanged && <p className="text-xs text-amber-700 dark:text-amber-300">Changing the role signs {u.name} out of all their sessions.</p>}
             {err}

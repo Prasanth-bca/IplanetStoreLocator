@@ -3,6 +3,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { UserHeartbeat } from '@/components/UserHeartbeat';
 import { ChatWidget } from '@/components/ChatWidget';
+import { LeadAlerts } from '@/components/storeLeads/LeadAlerts';
 import { PALETTE_BOOT_SCRIPT } from '@/lib/palettes';
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function RootLayout({
           <UserHeartbeat />
           {children}
           <ChatWidget />
+          <LeadAlerts />
         </ThemeProvider>
       </body>
     </html>

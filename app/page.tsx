@@ -1,10 +1,10 @@
 'use client';
 
 import { BrandMark } from '@/components/BrandMark';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, KeyRound, LogOut, MapPin, MessageCircle, Package, Settings, Tag, Users, type LucideIcon, Bot, NotebookPen } from 'lucide-react';
+import { ArrowRight, KeyRound, LogOut, MapPin, MessageCircle, Package, Settings, Tag, Users, type LucideIcon, Bot, NotebookPen, Share2, Inbox, TrendingDown } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useCurrentUser, resetCurrentUser } from '@/lib/useCurrentUser';
 import { ROLE_LABEL, type Role } from '@/lib/access';
@@ -29,6 +29,22 @@ const FINDER: Destination = {
 };
 
 const TOOLS: Destination[] = [
+  {
+    roles: ['ADMIN', 'SALES', 'STORE'],
+    href: '/market',
+    title: 'Market Price & Offers',
+    description: 'Compare Apple device prices and current online offers across major Indian shopping platforms.',
+    Icon: TrendingDown,
+    tint: 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400',
+  },
+  {
+    roles: ['ADMIN'],
+    href: '/admin/market',
+    title: 'Market prices (admin)',
+    description: 'Choose who can open Market Price & Offers and enter verified retailer prices and offers.',
+    Icon: Settings,
+    tint: 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400',
+  },
   {
     roles: ['ADMIN'],
     href: '/admin/stock',
@@ -68,6 +84,38 @@ const TOOLS: Destination[] = [
     description: 'Note customers who were billed on a different phone number from the one you spoke to, so billing can match the sale.',
     Icon: NotebookPen,
     tint: 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400',
+  },
+  {
+    roles: ['ADMIN', 'SALES'],
+    href: '/share-lead',
+    title: 'Share a lead',
+    description: 'Send a customer lead straight to a store, and follow what the store did with it.',
+    Icon: Share2,
+    tint: 'bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400',
+  },
+  {
+    roles: ['STORE'],
+    href: '/store-leads',
+    title: 'Received Leads',
+    description: 'Customer leads sent to your store. Respond, record follow-ups and close sales.',
+    Icon: Inbox,
+    tint: 'bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400',
+  },
+  {
+    roles: ['ADMIN'],
+    href: '/admin/store-leads',
+    title: 'Store leads',
+    description: 'Every lead shared with a store: response times, follow-ups, conversions and reminders.',
+    Icon: Inbox,
+    tint: 'bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400',
+  },
+  {
+    roles: ['ADMIN'],
+    href: '/admin/store-accounts',
+    title: 'Store accounts',
+    description: 'Create a login for each retail store so it can receive and work its own leads.',
+    Icon: KeyRound,
+    tint: 'bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400',
   },
   {
     roles: ['ADMIN'],
@@ -143,7 +191,12 @@ export default function HomePage() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   const { user, loading } = useCurrentUser();
-  const tools = user ? TOOLS.filter(t => t.roles.includes(user.role)) : [];
+  const [marketOk, setMarketOk] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    fetch('/api/market/access').then(r => (r.ok ? r.json() : null)).then(b => setMarketOk(!!b?.allowed)).catch(() => {});
+  }, [user]);
+  const tools = user ? TOOLS.filter(t => t.roles.includes(user.role) && (t.href !== '/market' || marketOk)) : [];
 
   const logout = async () => {
     setLoggingOut(true);
@@ -206,16 +259,18 @@ export default function HomePage() {
           </p>
         </div>
 
+        {user?.role !== 'STORE' && (
         <section aria-labelledby="customer-heading" className="mb-10">
           <h2 id="customer-heading" className="text-[11px] uppercase tracking-widest font-bold text-gray-500 dark:text-gray-400 mb-3">
             For customers
           </h2>
           <DestinationCard d={FINDER} large />
         </section>
+        )}
 
         <section aria-labelledby="tools-heading">
           <h2 id="tools-heading" className="text-[11px] uppercase tracking-widest font-bold text-gray-500 dark:text-gray-400 mb-3">
-            {user?.role === 'ADMIN' ? 'Management tools' : 'Your tools'}
+            {user?.role === 'ADMIN' ? 'Management tools' : user?.role === 'STORE' ? 'Your store' : 'Your tools'}
           </h2>
           {loading ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true">

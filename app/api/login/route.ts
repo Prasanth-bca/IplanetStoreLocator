@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
         deviceType: client.deviceType,
         browser: client.browser,
         os: client.os,
-        currentPath: user.role === 'ADMIN' ? '/admin' : '/locator',
+        currentPath: user.role === 'ADMIN' ? '/admin' : user.role === 'STORE' ? '/store-leads' : '/locator',
         status: 'ACTIVE',
       },
     });

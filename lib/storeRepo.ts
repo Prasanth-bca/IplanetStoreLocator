@@ -157,15 +157,33 @@ async function upsertStores(stores: Store[]): Promise<void> {
   invalidateStoreCache();
 }
 
-export async function updateStore(id: string, updates: Partial<Store>): Promise<Store | null> {
+/** Add one store (a single insert: it does not rewrite every other store). */
+export async function createStore(input: { posCode: string; category: 'Retail' | 'Care'; fields: import('@/lib/storeInput').StoreFields }): Promise<Store> {
+  const { fields: f } = input;
+  const top = await prisma.store.aggregate({ _max: { priority: true }, where: { category: input.category } });
+  const row = await prisma.store.create({
+    data: {
+      id: `store_${Date.now()}`,
+      posCode: input.posCode,
+      storeType: input.category,
+      category: input.category,
+      locationType: input.category === 'Care' ? 'iPlanet Care / Service Centre' : 'iPlanet Retail Store',
+      brand: 'iPlanet',
+      country: 'India',
+      priority: (top._max.priority ?? 0) + 1,
+      ...f,
+    },
+  });
+  invalidateStoreCache();
+  return mapToStore(row);
+}
+
+/** Change a store's details. The POS code and category are never changed here (stock, leads and logins are tied to them). */
+export async function updateStore(id: string, updates: Partial<import('@/lib/storeInput').StoreFields>): Promise<Store | null> {
   try {
     const existing = await prisma.store.findFirst({ where: { OR: [{ id }, { posCode: id }] } });
     if (!existing) return null;
-
-    const data: Record<string, unknown> = {};
-    if (updates.status !== undefined) data.status = updates.status;
-
-    const updated = await prisma.store.update({ where: { id: existing.id }, data });
+    const updated = await prisma.store.update({ where: { id: existing.id }, data: updates });
     invalidateStoreCache();
     return mapToStore(updated);
   } catch (err) {

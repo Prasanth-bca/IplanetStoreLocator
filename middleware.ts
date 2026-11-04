@@ -10,7 +10,8 @@ import { canAccess, isAppPage } from '@/lib/access';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === '/login' || pathname === '/api/login') {
+  // The cron URL has no browser session: it checks its own secret in the route.
+  if (pathname === '/login' || pathname === '/api/login' || pathname === '/api/cron/lead-reminders') {
     return NextResponse.next();
   }
 

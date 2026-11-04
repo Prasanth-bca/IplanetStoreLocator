@@ -46,9 +46,10 @@ function LoginForm() {
         return;
       }
 
+      const who = await res.json().catch(() => ({}));
       resetCurrentUser(); // so the next page asks who just signed in
       // Only follow real pages of this site: never another website, never an address that doesn't exist.
-      const requested = searchParams.get('next') || '/';
+      const requested = searchParams.get('next') || (who?.user?.role === 'STORE' ? '/store-leads' : '/');
       const next = requested.startsWith('/') && !requested.startsWith('//') && isAppPage(requested) ? requested : '/';
       router.push(next);
       router.refresh();

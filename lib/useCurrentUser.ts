@@ -25,10 +25,14 @@ function load(): Promise<CurrentUser | null> {
   return inflight;
 }
 
-/** Forget the cached person, e.g. after signing out. */
+// Components that stay mounted across a sign-in or sign-out (the chat button, the heartbeat, store alerts) must hear about it.
+const listeners = new Set<() => void>();
+
+/** Forget the cached person, e.g. after signing in or out, and tell every component using the hook to ask again. */
 export function resetCurrentUser() {
   cached = null;
   inflight = null;
+  listeners.forEach(run => run());
 }
 
 /** The signed-in person; `loading` is true until the first answer arrives. */
@@ -37,15 +41,24 @@ export function useCurrentUser(): { user: CurrentUser | null; loading: boolean }
   const [loading, setLoading] = useState(cached === null);
 
   useEffect(() => {
-    if (cached) return;
     let cancelled = false;
-    load().then(u => {
-      if (cancelled) return;
-      setUser(u);
-      setLoading(false);
-    });
+    const run = () => {
+      if (cached) {
+        setUser(cached);
+        setLoading(false);
+        return;
+      }
+      load().then(u => {
+        if (cancelled) return;
+        setUser(u);
+        setLoading(false);
+      });
+    };
+    run();
+    listeners.add(run);
     return () => {
       cancelled = true;
+      listeners.delete(run);
     };
   }, []);
 

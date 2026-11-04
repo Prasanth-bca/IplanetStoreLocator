@@ -2,12 +2,13 @@
 
 import type { Prisma } from '@prisma/client';
 import { isoToDate } from '@/lib/offers/dates';
+import type { Role } from '@/lib/access';
 import { STATUSES } from './validate';
 import { parseSearch } from './validate';
 
 export interface Viewer {
   id: string;
-  role: 'ADMIN' | 'SALES';
+  role: Role;
 }
 
 export function buildWhere(viewer: Viewer, sp: URLSearchParams, opts: { ignoreStatus?: boolean } = {}): Prisma.BillingNoteWhereInput {

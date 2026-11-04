@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { forgetUser, hashPassword, requireRole } from '@/lib/auth';
+import { forgetStoreAccount } from '@/lib/storeLeads/server';
 import { Role } from '@/lib/access';
 import { parseRole, validateName, validatePassword, wouldRemoveLastAdmin } from '@/lib/userRules';
 
@@ -31,9 +32,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     let newRole: Role | undefined;
-    if (body.role !== undefined) {
+    if (body.role !== undefined && !(target.role === 'STORE' && body.role === 'STORE')) {
       const role = parseRole(body.role);
       if (!role) return NextResponse.json({ error: 'Choose a valid role.' }, { status: 400 });
+      if (target.role === 'STORE') return NextResponse.json({ error: 'A store login keeps its role. Create a normal user instead.' }, { status: 400 });
       if (role !== target.role) {
         newRole = role;
         data.role = role;
@@ -112,6 +114,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       prisma.user.delete({ where: { id: target.id } }),
     ]);
     forgetUser(target.id);
+    forgetStoreAccount(target.id);
     return NextResponse.json({ success: true, deleted: { username: target.username, name: target.name } });
   } catch (error) {
     console.error('DELETE /api/admin/users/[id] error:', error);

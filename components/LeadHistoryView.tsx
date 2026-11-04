@@ -17,6 +17,9 @@ interface Lead {
   remarks: string | null;
   channel: string;
   passedBy: string | null;
+  closed?: boolean;
+  billedName?: string | null;
+  billedMobile?: string | null;
 }
 
 interface History {
@@ -124,7 +127,7 @@ export function LeadHistoryView({ scope }: { scope: LeadScope }) {
 
   const downloadCsv = () => {
     if (!visible.length) return;
-    const header = ['Date', 'Time', 'Customer', 'Mobile', 'Store', 'POS Code', 'Product / Model', 'Remarks', 'WhatsApp', ...(isAll ? ['Passed by'] : [])];
+    const header = ['Date', 'Time', 'Customer', 'Mobile', 'Store', 'POS Code', 'Product / Model', 'Remarks', 'WhatsApp', 'Status', 'Billed customer', 'Billed mobile', ...(isAll ? ['Passed by'] : [])];
     const rows = visible.map(l =>
       [
         new Date(l.createdAt).toLocaleDateString('en-CA', { timeZone: IST }),
@@ -135,7 +138,10 @@ export function LeadHistoryView({ scope }: { scope: LeadScope }) {
         l.posCode,
         l.product,
         (l.remarks ?? '').replace(/\s*\n\s*/g, ' / '),
-        l.channel === 'desktop' ? 'App' : 'Web',
+        l.channel === 'store' ? 'Direct to store' : l.channel === 'desktop' ? 'App' : 'Web',
+        l.closed ? 'Closed' : 'Not closed',
+        l.closed ? l.billedName ?? '' : '',
+        l.closed ? l.billedMobile ?? '' : '',
         ...(isAll ? [l.passedBy ?? 'Unknown'] : []),
       ]
         .map(csvCell)

@@ -153,6 +153,8 @@ model User {
   leads        Lead[]
   sessions     UserSession[]
   billingNotes BillingNote[]
+  storeAccount StoreAccount?
+  sharedLeads  StoreLead[]
 
   @@map("users")
 }
@@ -345,4 +347,162 @@ model BillingNote {
   @@index([dialledPhone])
   @@index([createdById, bookingDate])
   @@map("billing_notes")
+}
+
+/// Ties one store login (a User with role STORE) to one store. Kept in its own table so the users table is not changed.
+model StoreAccount {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  /// The store's POS code (stores.pos_code). Kept as text so the account survives a store being edited.
+  posCode   String   @unique @map("pos_code")
+  storeName String   @map("store_name")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("store_accounts")
+}
+
+/// A customer lead a sales user shared directly with one store. The reminders count from `assignedAt`.
+/// The sales user and the store are always kept on the row, even though the store does not see who shared it.
+model StoreLead {
+  id              String    @id @default(cuid())
+  /// Generated in the browser per form, so a double-click cannot share the same lead twice.
+  clientId        String    @unique @map("client_id")
+  customerName    String    @map("customer_name")
+  /// 10 digits, no country code.
+  customerMobile  String    @map("customer_mobile")
+  /// The device or product the customer wants.
+  requirement     String
+  /// What the sales user noted when sharing.
+  remarks         String?
+  posCode         String    @map("pos_code")
+  storeName       String    @map("store_name")
+  sharedById      String?   @map("shared_by_id")
+  sharedByName    String    @map("shared_by_name")
+  sharedBy        User?     @relation(fields: [sharedById], references: [id], onDelete: SetNull)
+  /// The matching row in the existing lead history (leads.id), so the sales user's Lead History shows it too.
+  leadId          String?   @map("lead_id")
+  /// The moment the lead was assigned. Both reminders are measured from here.
+  assignedAt      DateTime  @default(now()) @map("assigned_at")
+  /// "COLD" | "WARM" | "HOT"
+  interest        String?
+  /// "TODAY" | "TOMORROW" | "LATER"
+  visitIntention  String?   @map("visit_intention")
+  visitUpdatedAt  DateTime? @map("visit_updated_at")
+  /// "CLOSED" | "NOT_CLOSED" | "NOT_INTERESTED"; null until the store decides.
+  conversion      String?
+  /// When the store first did anything with the lead (a remark or any of the three choices). Stops the reminders.
+  firstResponseAt DateTime? @map("first_response_at")
+  lastActivityAt  DateTime  @default(now()) @map("last_activity_at")
+  closedAt        DateTime? @map("closed_at")
+  /// Required when conversion is CLOSED: who was actually billed.
+  billedName      String?   @map("billed_name")
+  billedMobile    String?   @map("billed_mobile")
+
+  activities      LeadActivity[]
+  notifications   LeadNotification[]
+
+  @@index([posCode, assignedAt])
+  @@index([sharedById, assignedAt])
+  @@index([firstResponseAt, assignedAt])
+  @@index([conversion])
+  @@map("store_leads")
+}
+
+/// The follow-up history of a lead: every remark and status change, kept in full (never overwritten).
+model LeadActivity {
+  id          String    @id @default(cuid())
+  storeLeadId String    @map("store_lead_id")
+  at          DateTime  @default(now())
+  byUserId    String?   @map("by_user_id")
+  byName      String    @map("by_name")
+  /// "ASSIGNED" | "FOLLOW_UP" | "CLOSED"
+  kind        String
+  note        String?
+  interest    String?
+  visitIntention String? @map("visit_intention")
+  conversion  String?
+  storeLead   StoreLead @relation(fields: [storeLeadId], references: [id], onDelete: Cascade)
+
+  @@index([storeLeadId, at])
+  @@map("lead_activities")
+}
+
+/// An automatic reminder for a store. One row per lead per interval, enforced by the unique key, so it can never repeat.
+model LeadNotification {
+  id          String    @id @default(cuid())
+  storeLeadId String    @map("store_lead_id")
+  posCode     String    @map("pos_code")
+  /// "REMINDER_20" | "REMINDER_40"
+  kind        String
+  /// When the reminder fell due (assignedAt plus 20 or 40 minutes).
+  dueAt       DateTime  @map("due_at")
+  /// When the server actually created it.
+  createdAt   DateTime  @default(now()) @map("created_at")
+  readAt      DateTime? @map("read_at")
+  readByName  String?   @map("read_by_name")
+  storeLead   StoreLead @relation(fields: [storeLeadId], references: [id], onDelete: Cascade)
+
+  @@unique([storeLeadId, kind])
+  @@index([posCode, readAt])
+  @@index([createdAt])
+  @@map("lead_notifications")
+}
+
+/// Market Price & Offers: who may open the module (admin always can). One row, id "default".
+model MarketSetting {
+  id            String   @id @default("default")
+  salesEnabled  Boolean  @default(true) @map("sales_enabled")
+  storeEnabled  Boolean  @default(false) @map("store_enabled")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  updatedByName String?  @map("updated_by_name")
+
+  @@map("market_settings")
+}
+
+/// One platform's current price for one exact product + variant (productKey). Never invented: every row has a source link,
+/// a time, and who or what supplied it (MANUAL = an admin typed it from the retailer's page; otherwise a connected feed).
+model MarketPrice {
+  id            String        @id @default(cuid())
+  productKey    String        @map("product_key")
+  productLabel  String        @map("product_label")
+  category      String
+  platform      String
+  retailerName  String?       @map("retailer_name")
+  mrp           Int?
+  sellingPrice  Int           @map("selling_price")
+  availability  String        @default("UNKNOWN")
+  sourceUrl     String        @map("source_url")
+  sourceKind    String        @default("MANUAL") @map("source_kind")
+  sourceName    String?       @map("source_name")
+  enteredByName String?       @map("entered_by_name")
+  fetchedAt     DateTime      @default(now()) @map("fetched_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  offers        MarketOffer[]
+
+  @@unique([productKey, platform, retailerName])
+  @@index([productKey])
+  @@index([category])
+  @@map("market_prices")
+}
+
+model MarketOffer {
+  id             String      @id @default(cuid())
+  priceId        String      @map("price_id")
+  price          MarketPrice @relation(fields: [priceId], references: [id], onDelete: Cascade)
+  kind           String
+  title          String
+  bank           String?
+  discountAmount Int?        @map("discount_amount")
+  discountPercent Float?     @map("discount_percent")
+  minAmount      Int?        @map("min_amount")
+  maxDiscount    Int?        @map("max_discount")
+  validFrom      DateTime?   @map("valid_from")
+  validUntil     DateTime?   @map("valid_until")
+  variants       String?
+  terms          String?
+  link           String?
+
+  @@index([priceId])
+  @@map("market_offers")
 }

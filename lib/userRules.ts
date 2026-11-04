@@ -1,6 +1,6 @@
 /** Validation for user accounts. Pure, so the API routes and the tests share it. */
 
-import { isRole, Role } from '@/lib/access';
+import { ASSIGNABLE_ROLES, Role } from '@/lib/access';
 
 export const USERNAME_PATTERN = /^[a-z0-9][a-z0-9._-]{2,31}$/;
 export const PASSWORD_MIN = 8;
@@ -32,7 +32,8 @@ export function validateName(raw: string): string | null {
 }
 
 export function parseRole(value: unknown): Role | null {
-  return isRole(value) ? value : null;
+  // STORE is deliberately not accepted here: a store login is created from the Store accounts page, where it is tied to one store.
+  return ASSIGNABLE_ROLES.includes(value as Role) ? (value as Role) : null;
 }
 
 /**

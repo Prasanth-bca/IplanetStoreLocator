@@ -1114,3 +1114,19 @@ body::after {
   100% { opacity: 0; transform: translateY(-2px) scale(0.98); }
 }
 @media (prefers-reduced-motion: reduce) { .chat-quote { animation: none !important; } }
+
+/* ───── store leads: pending-response pulse, converted highlight, celebration banner ───── */
+@keyframes lead-pulse-1 { 0%, 100% { background-color: rgba(239, 68, 68, 0.07); } 50% { background-color: rgba(239, 68, 68, 0.2); } }
+@keyframes lead-pulse-2 { 0%, 100% { background-color: rgba(239, 68, 68, 0.13); } 50% { background-color: rgba(239, 68, 68, 0.32); } }
+.lead-pulse-1 { animation: lead-pulse-1 2.6s ease-in-out infinite; box-shadow: inset 4px 0 0 rgba(239, 68, 68, 0.7); }
+.lead-pulse-2 { animation: lead-pulse-2 1.7s ease-in-out infinite; box-shadow: inset 5px 0 0 rgb(220, 38, 38); }
+.lead-closed { background-color: rgba(16, 185, 129, 0.12); box-shadow: inset 4px 0 0 rgb(16, 185, 129); }
+@keyframes lead-celebrate { 0% { opacity: 0; transform: translateY(-14px) scale(0.92); } 12% { opacity: 1; transform: none; } 88% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
+.lead-celebrate { animation: lead-celebrate 4.2s ease both; }
+@keyframes lead-toast-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+.lead-toast { animation: lead-toast-in 0.25s ease both; }
+@media (prefers-reduced-motion: reduce) {
+  .lead-pulse-1 { animation: none; background-color: rgba(239, 68, 68, 0.14); }
+  .lead-pulse-2 { animation: none; background-color: rgba(239, 68, 68, 0.26); }
+  .lead-celebrate, .lead-toast { animation: none; }
+}

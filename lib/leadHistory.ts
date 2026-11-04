@@ -36,6 +36,18 @@ export async function leadHistoryResponse(request: NextRequest, onlyUserId?: str
     const truncated = rows.length > MAX_LEADS;
     const leads = truncated ? rows.slice(0, MAX_LEADS) : rows;
 
+    // Outcome from the store's follow-up (only leads shared through the store-leads feature have one).
+    const outcomes = new Map<string, { conversion: string | null; billedName: string | null; billedMobile: string | null }>();
+    try {
+      const tracked = await prisma.storeLead.findMany({
+        where: { leadId: { in: leads.map(l => l.id) } },
+        select: { leadId: true, conversion: true, billedName: true, billedMobile: true },
+      });
+      for (const t of tracked) if (t.leadId) outcomes.set(t.leadId, t);
+    } catch (e) {
+      if (!['P2021', 'P2022'].includes((e as { code?: string })?.code ?? '')) throw e; // tables not created yet: no outcomes
+    }
+
     const byDay = new Map<string, number>();
     const byStore = new Map<string, { posCode: string; storeName: string; count: number }>();
     const byProduct = new Map<string, number>();
@@ -63,6 +75,10 @@ export async function leadHistoryResponse(request: NextRequest, onlyUserId?: str
         remarks: l.remarks,
         channel: l.channel,
         passedBy: l.userName,
+        // Closed only when the store closed it with billing details; billed details stay empty otherwise.
+        closed: outcomes.get(l.id)?.conversion === 'CLOSED',
+        billedName: outcomes.get(l.id)?.conversion === 'CLOSED' ? outcomes.get(l.id)?.billedName ?? null : null,
+        billedMobile: outcomes.get(l.id)?.conversion === 'CLOSED' ? outcomes.get(l.id)?.billedMobile ?? null : null,
       })),
       byDay: Array.from(byDay, ([day, count]) => ({ day, count })).sort((a, b) => a.day.localeCompare(b.day)),
       byStore: Array.from(byStore.values()).sort((a, b) => b.count - a.count),
